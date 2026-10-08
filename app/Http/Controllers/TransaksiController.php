@@ -4005,7 +4005,7 @@ class TransaksiController extends Controller
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode($payload),
                 CURLOPT_HTTPHEADER => [
-                    'Authorization: Key ' . env('ONESIGNAL_REST_API_KEY'),
+                    'Authorization: Key ' . config('services.onesignal.rest_api_key'),
                     'Content-Type: application/json',
                 ],
             ]);
@@ -4107,7 +4107,7 @@ class TransaksiController extends Controller
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode($payload),
                 CURLOPT_HTTPHEADER => [
-                    'Authorization: Key ' . env('ONESIGNAL_REST_API_KEY'),
+                    'Authorization: Key ' . config('services.onesignal.rest_api_key'),
                     'Content-Type: application/json',
                 ],
             ]);
@@ -4209,7 +4209,7 @@ class TransaksiController extends Controller
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode($payload),
                 CURLOPT_HTTPHEADER => [
-                    'Authorization: Key ' . env('ONESIGNAL_REST_API_KEY'),
+                    'Authorization: Key ' . config('services.onesignal.rest_api_key'),
                     'Content-Type: application/json',
                 ],
             ]);
@@ -4297,7 +4297,7 @@ class TransaksiController extends Controller
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode($payload),
                 CURLOPT_HTTPHEADER => [
-                    'Authorization: Key ' . env('ONESIGNAL_REST_API_KEY'),
+                    'Authorization: Key ' . config('services.onesignal.rest_api_key'),
                     'Content-Type: application/json',
                 ],
             ]);
@@ -4385,7 +4385,7 @@ class TransaksiController extends Controller
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode($payload),
                 CURLOPT_HTTPHEADER => [
-                    'Authorization: Key ' . env('ONESIGNAL_REST_API_KEY'),
+                    'Authorization: Key ' . config('services.onesignal.rest_api_key'),
                     'Content-Type: application/json',
                 ],
             ]);
@@ -4473,7 +4473,7 @@ class TransaksiController extends Controller
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode($payload),
                 CURLOPT_HTTPHEADER => [
-                    'Authorization: Key ' . env('ONESIGNAL_REST_API_KEY'),
+                    'Authorization: Key ' . config('services.onesignal.rest_api_key'),
                     'Content-Type: application/json',
                 ],
             ]);
