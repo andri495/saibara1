@@ -1,0 +1,17 @@
+[2026-06-05 07:36:06] ERROR [QR_GENERATION_ERROR] - Ref: 56c1c7fc-6075-11f1-b80, Message: QR generation failed: Operation timed out after 30000 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:36:49] ERROR [QR_GENERATION_ERROR] - Ref: 89f28e4e-6076-11f1-b03, Message: QR generation failed: Operation timed out after 30001 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:37:30] ERROR [QR_GENERATION_ERROR] - Ref: a3b0c346-6076-11f1-ab6, Message: QR generation failed: Operation timed out after 30001 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:38:15] ERROR [QR_GENERATION_ERROR] - Ref: bc7badb4-6076-11f1-bce, Message: QR generation failed: Operation timed out after 30000 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:39:03] ERROR [QR_GENERATION_ERROR] - Ref: d6c48e48-6076-11f1-a1e, Message: QR generation failed: Operation timed out after 30000 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:40:08] ERROR [QR_GENERATION_ERROR] - Ref: f3ca5766-6076-11f1-8be, Message: QR generation failed: Operation timed out after 30001 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:42:48] ERROR [QR_GENERATION_ERROR] - Ref: 1aa58e1e-6077-11f1-bed, Message: QR generation failed: Operation timed out after 30001 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:46:54] ERROR [QR_GENERATION_ERROR] - Ref: 79fc6374-6077-11f1-b98, Message: QR generation failed: Operation timed out after 30000 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:47:42] ERROR [QR_GENERATION_ERROR] - Ref: 0c3d2cfa-6078-11f1-a05, Message: QR generation failed: Operation timed out after 30001 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:48:30] ERROR [QR_GENERATION_ERROR] - Ref: 28be6f56-6078-11f1-bd0, Message: QR generation failed: Operation timed out after 30000 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:49:07] ERROR [QR_GENERATION_ERROR] - Ref: 456707da-6078-11f1-aac, Message: QR generation failed: Operation timed out after 30000 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:49:58] ERROR [QR_GENERATION_ERROR] - Ref: 5bd86aea-6078-11f1-891, Message: QR generation failed: Operation timed out after 30001 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:50:42] ERROR [QR_GENERATION_FAILED] - Ref: 7a1e2292-6078-11f1-821, Message: Bank API returned error, Data: {"response_code":"4094700","response_message":"Conflict"}
+[2026-06-05 07:50:54] ERROR [QR_GENERATION_ERROR] - Ref: 7a1e2292-6078-11f1-821, Message: QR generation failed: Operation timed out after 30001 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:51:25] ERROR [QR_GENERATION_ERROR] - Ref: 947c79e0-6078-11f1-8a2, Message: QR generation failed: Operation timed out after 30000 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:52:39] ERROR [QR_GENERATION_ERROR] - Ref: adddb6a6-6078-11f1-8e5, Message: QR generation failed: Operation timed out after 30000 milliseconds with 0 bytes received, Data: {"http_code":0}
+[2026-06-05 07:55:13] ERROR [QR_GENERATION_ERROR] - Ref: da4c6890-6078-11f1-82d, Message: QR generation failed: Operation timed out after 30001 milliseconds with 0 bytes received, Data: {"http_code":0}

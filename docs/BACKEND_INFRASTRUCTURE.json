@@ -1,0 +1,627 @@
+{
+  "project": {
+    "name": "e-Retribusi API",
+    "description": "Sistem Retribusi Daerah berbasis Laravel - REST API + Web Admin Panel untuk pengelolaan transaksi retribusi, master data, dashboard pendapatan, dan integrasi mobile app",
+    "framework": "Laravel 10.x",
+    "php_version": "^8.1",
+    "type": "Hybrid (REST API + Server-Side Rendered Web)",
+    "repository": "YuanFerdinand/e-retribusi-api"
+  },
+  "tech_stack": {
+    "backend_framework": "Laravel 10.10+",
+    "language": "PHP 8.1+",
+    "authentication": {
+      "web": "Session-based (Laravel native)",
+      "api": "JWT (tymon/jwt-auth ^2.2)"
+    },
+    "database": "MySQL (eretribusi_db)",
+    "cache": "Redis (predis/predis ^3.3)",
+    "key_packages": {
+      "laravel/sanctum": "^3.3",
+      "tymon/jwt-auth": "^2.2 - JWT auth untuk API mobile",
+      "barryvdh/laravel-dompdf": "^3.1 - Generate PDF dokumen",
+      "dompdf/dompdf": "^3.1",
+      "mpdf/mpdf": "^8.2 - Alternative PDF generator",
+      "phpoffice/phpspreadsheet": "^5.1 - Excel export",
+      "phpoffice/phpword": "^1.4 - Word export",
+      "endroid/qr-code": "^6.0 - Generate QR untuk pembayaran",
+      "spatie/laravel-medialibrary": "^11.13 - Media handling",
+      "guzzlehttp/guzzle": "^7.2 - HTTP client untuk integrasi eksternal",
+      "predis/predis": "^3.3 - Redis client",
+      "torann/currency": "^1.1 - Currency conversion",
+      "ramsey/uuid": "^4.9"
+    },
+    "dev_packages": {
+      "phpunit/phpunit": "^10.1",
+      "laravel/pint": "^1.0 - Code style",
+      "fakerphp/faker": "^1.9.1",
+      "nunomaduro/collision": "^7.0",
+      "spatie/laravel-ignition": "^2.0"
+    }
+  },
+  "architecture": {
+    "pattern": "MVC + Service Layer",
+    "structure": {
+      "app/Http/Controllers/": "API controllers (mobile app, public endpoints)",
+      "app/Http/Controllers/Api/": "Specialized API controllers (DashboardWebController for external integrations)",
+      "app/Http/Controllers/Web/": "Web admin panel controllers (session-based)",
+      "app/Http/Middleware/": "Custom middleware (Client Secret, App Version, JWT, etc.)",
+      "app/Models/": "Eloquent models (master data + transactional)",
+      "resources/views/": "Blade templates untuk web admin panel",
+      "routes/api.php": "REST API routes (mobile & external integration)",
+      "routes/web.php": "Web admin panel routes (session-based)",
+      "database/migrations/": "Schema migrations",
+      "config/": "Konfigurasi (auth.php = JWT default guard)"
+    },
+    "guards": {
+      "default": "api (JWT)",
+      "web": "session-based (untuk admin panel)",
+      "api": "JWT (untuk mobile app & external)"
+    }
+  },
+  "security": {
+    "middleware_aliases": {
+      "auth": "App\\Http\\Middleware\\Authenticate",
+      "guest": "App\\Http\\Middleware\\RedirectIfAuthenticated",
+      "client.secret": "App\\Http\\Middleware\\CheckClientSecret - Memvalidasi header X-Client-Secret untuk semua API calls dari mobile app",
+      "app.version": "App\\Http\\Middleware\\CheckAppVersion - Memvalidasi header X-App-Version >= MIN_APP_VERSION (default 27), return 426 jika outdated",
+      "api.token": "App\\Http\\Middleware\\ValidateApiToken - Memvalidasi header X-API-TOKEN terhadap env EXTERNAL_API_TOKEN untuk integrasi eksternal",
+      "signed": "App\\Http\\Middleware\\ValidateSignature - Untuk signed URL (email verification)",
+      "throttle": "Rate limiting (api throttle group)",
+      "verified": "Email verification check"
+    },
+    "headers_required": {
+      "mobile_api": [
+        "X-Client-Secret (wajib untuk semua /api/*)",
+        "X-App-Version (>= MIN_APP_VERSION)",
+        "Authorization: Bearer <JWT> (untuk protected endpoints)"
+      ],
+      "external_api": [
+        "X-API-TOKEN (untuk /api/dashboard-web/* dan /api/auth/external/*)"
+      ],
+      "web_admin": [
+        "X-CSRF-TOKEN (Laravel CSRF protection)",
+        "Cookie session"
+      ]
+    },
+    "global_middleware": [
+      "TrustProxies",
+      "HandleCors",
+      "PreventRequestsDuringMaintenance",
+      "ValidatePostSize",
+      "TrimStrings",
+      "ConvertEmptyStringsToNull"
+    ]
+  },
+  "routes": {
+    "summary": {
+      "total_api_endpoints": "~150+",
+      "total_web_endpoints": "~80+ (banyak via resource routes)",
+      "api_base_path": "/api",
+      "web_base_path": "/"
+    },
+    "api_routes": {
+      "auth_public": {
+        "description": "Authentication endpoints (mobile app)",
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/auth",
+        "endpoints": [
+          {"method": "POST", "path": "/login", "controller": "AuthController@login", "description": "Login dengan email/password, return JWT"},
+          {"method": "POST", "path": "/register", "controller": "AuthController@register", "description": "Registrasi user baru"},
+          {"method": "POST", "path": "/logout", "controller": "AuthController@logout", "description": "Logout (invalidate token)"}
+        ]
+      },
+      "auth_external": {
+        "description": "Untuk integrasi pihak ketiga",
+        "middleware": ["api", "api.token", "client.secret", "app.version"],
+        "prefix": "/api/auth",
+        "endpoints": [
+          {"method": "POST", "path": "/external/login", "controller": "AuthController@loginExternal"},
+          {"method": "POST", "path": "/external/register", "controller": "AuthController@registerExternal"}
+        ]
+      },
+      "auth_password_reset": {
+        "description": "Forgot/reset password (no middleware)",
+        "endpoints": [
+          {"method": "POST", "path": "/auth/forgot-password", "controller": "AuthController@forgotPassword"},
+          {"method": "POST", "path": "/auth/reset-password", "controller": "AuthController@resetPassword"}
+        ]
+      },
+      "jwt": {
+        "middleware": ["api", "client.secret", "app.version"],
+        "endpoints": [
+          {"method": "POST", "path": "/logout", "controller": "AuthController@logout"},
+          {"method": "GET", "path": "/me", "controller": "AuthController@me", "description": "Current authenticated user"},
+          {"method": "POST", "path": "/refresh", "controller": "AuthController@refresh", "description": "Refresh JWT token"}
+        ]
+      },
+      "user": {
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/user",
+        "endpoints": [
+          {"method": "GET", "path": "/profile", "controller": "ProfileController@profile"},
+          {"method": "GET", "path": "/profile/picture/{filename}", "controller": "ProfileController@getProfilePicture"},
+          {"method": "POST", "path": "/profile/update", "controller": "ProfileController@update", "note": "Tanpa prefix middleware group"}
+        ]
+      },
+      "opd": {
+        "description": "Organisasi Perangkat Daerah",
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/opd",
+        "endpoints": [
+          {"method": "GET", "path": "/data", "controller": "OpdController@getOpd"},
+          {"method": "GET", "path": "/get", "controller": "OpdController@getListOpdAndLocation"}
+        ]
+      },
+      "retribution": {
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/retribution",
+        "endpoints": [
+          {"method": "GET", "path": "/get", "controller": "RetributionController@getRetribution"},
+          {"method": "GET", "path": "/by-location", "controller": "RetributionController@getRetributionByLocation"},
+          {"method": "GET", "path": "/targets", "controller": "TransaksiController@getRetributionTargets"}
+        ]
+      },
+      "location": {
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/location",
+        "endpoints": [
+          {"method": "GET", "path": "/list", "controller": "LokasiController@getLocation"},
+          {"method": "GET", "path": "/parking", "controller": "LokasiController@getParkingLocation"},
+          {"method": "GET", "path": "/penetapan/khusus", "controller": "LokasiController@getPenetapanKhususLocation"}
+        ]
+      },
+      "role": {
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/role",
+        "endpoints": [
+          {"method": "GET", "path": "/data", "controller": "RoleController@getRole"}
+        ]
+      },
+      "object": {
+        "description": "Objek Retribusi (item yang dipungut retribusinya)",
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/object",
+        "endpoints": [
+          {"method": "GET", "path": "/all", "controller": "ObjectController@getAllObjects"},
+          {"method": "GET", "path": "/master-data", "controller": "ObjectController@getMasterDataForForms"},
+          {"method": "GET", "path": "/latest", "controller": "ObjectController@getLatestObject"},
+          {"method": "GET", "path": "/highest/ratings", "controller": "ObjectController@getHighestScoreObject"},
+          {"method": "GET", "path": "/highest/transactions", "controller": "ObjectController@getMostTransactionObject"},
+          {"method": "GET", "path": "/location", "controller": "ObjectController@getObjectByLocation"},
+          {"method": "GET", "path": "/penetapan/khusus", "controller": "ObjectController@getObjectPenetapanKhusus"},
+          {"method": "GET", "path": "/search", "controller": "ObjectController@searchObject"},
+          {"method": "GET", "path": "/search/penetapan/khusus", "controller": "ObjectController@searchObjectPenetapanKhusus"},
+          {"method": "GET", "path": "/image/{filename}", "controller": "ObjectController@getObjectImage"},
+          {"method": "GET", "path": "/{id}", "controller": "ObjectController@getObjectById"},
+          {"method": "POST", "path": "/create", "controller": "MasterDataController@createObjek"},
+          {"method": "PUT|POST", "path": "/update/{id}", "controller": "ObjectController@updateObject"},
+          {"method": "DELETE", "path": "/delete/{id}", "controller": "ObjectController@deleteObject"},
+          {"method": "DELETE", "path": "/delete-images/{id}", "controller": "ObjectController@deleteObjectImages"}
+        ]
+      },
+      "cart": {
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/cart",
+        "endpoints": [
+          {"method": "GET", "path": "/get", "controller": "CartController@getCart"},
+          {"method": "POST", "path": "/create", "controller": "CartController@createCart"},
+          {"method": "GET", "path": "/object/delete", "controller": "CartObjectController@deleteObject"},
+          {"method": "POST", "path": "/update/quantity", "controller": "CartObjectController@addQuantity"}
+        ]
+      },
+      "chief": {
+        "description": "Pimpinan/Kepala Dinas",
+        "endpoints": [
+          {"method": "GET", "path": "/chief/get", "controller": "MasterChiefController@getChief"},
+          {"method": "GET", "path": "/chief/information/{id}", "controller": "MasterChiefController@showChief"}
+        ]
+      },
+      "document": {
+        "description": "Generator dokumen (SPDORD, SKRD, STRD)",
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/document",
+        "endpoints": [
+          {"method": "GET", "path": "/generate/spdord/{no_reference}", "controller": "DocumentController@generateSPDORD", "description": "Surat Pendataan dan Permohonan Objek Retribusi Daerah"},
+          {"method": "GET", "path": "/generate/skrd/{no_reference}", "controller": "DocumentController@generateSKRD", "description": "Surat Ketetapan Retribusi Daerah"},
+          {"method": "GET", "path": "/generate/skrd/installment/{no_reference}/{id}", "controller": "DocumentController@generateSKRDInstallment"},
+          {"method": "GET", "path": "/generate/strd/{no_reference}/{id}", "controller": "DocumentController@generateSTRD", "description": "Surat Tagihan Retribusi Daerah"},
+          {"method": "GET", "path": "/getDocument", "controller": "DocumentController@getDocument"},
+          {"method": "GET", "path": "/getAllDocument", "controller": "DocumentController@getAllDocument"},
+          {"method": "GET", "path": "/open/{filename}", "controller": "DocumentController@openDocument"},
+          {"method": "GET", "path": "/search", "controller": "DocumentController@searchDocument"}
+        ]
+      },
+      "transaksi": {
+        "description": "Core transaction endpoints",
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/transaksi",
+        "endpoints": [
+          {"method": "GET", "path": "/without-object", "controller": "TransaksiController@getTransaksiWithoutObject"},
+          {"method": "POST", "path": "/createTransaction", "controller": "DocumentController@store"},
+          {"method": "POST", "path": "/create", "controller": "TransaksiController@createTransaksiObjek"},
+          {"method": "POST", "path": "/change/status", "controller": "TransaksiController@changeStatusTransaksi"},
+          {"method": "GET", "path": "/getTransaksi", "controller": "TransaksiController@getTransaksi"},
+          {"method": "GET", "path": "/installment", "controller": "TransaksiController@getInstallment", "description": "Cicilan/angsuran"},
+          {"method": "GET", "path": "/installment/opd", "controller": "TransaksiController@getOpdInstallment"},
+          {"method": "GET", "path": "/opd/{masterOpdId}", "controller": "TransaksiController@getTransaksiOpd"},
+          {"method": "GET", "path": "/grouped-by-retribusi", "controller": "TransaksiController@getTransaksiGroupedByRetribusi"},
+          {"method": "GET", "path": "/by-retribusi", "controller": "TransaksiController@getTransaksiByRetribusiId"},
+          {"method": "GET", "path": "/file/{filename}", "controller": "TransaksiController@downloadPrivateFile"},
+          {"method": "GET", "path": "/generate/qr", "controller": "TransaksiController@getQRImage", "description": "QR Code pembayaran"},
+          {"method": "GET", "path": "/generate/va", "controller": "TransaksiController@getVA", "description": "Virtual Account"},
+          {"method": "POST", "path": "/create/parking", "controller": "TransaksiController@createParkingTransaction"},
+          {"method": "GET", "path": "/generate/report", "controller": "TransaksiController@generateFullReport"},
+          {"method": "GET", "path": "/generate/report/excel", "controller": "TransaksiController@generateFullReportExcel"},
+          {"method": "GET", "path": "/generate/skrd-report", "controller": "TransaksiController@generateSKRDReport"},
+          {"method": "GET", "path": "/generate/skrd-report/excel", "controller": "TransaksiController@generateSKRDReportExcel"},
+          {"method": "POST", "path": "/generate/revenue-recap", "controller": "TransaksiController@generateRevenueRecap"},
+          {"method": "POST", "path": "/generate/revenue-recap/excel", "controller": "TransaksiController@generateRevenueRecapExcel"},
+          {"method": "GET", "path": "/payment", "controller": "TransaksiController@setPaymentInstallment"},
+          {"method": "GET", "path": "/check/status", "controller": "TransaksiController@checkPaymentStatus"},
+          {"method": "GET", "path": "/check/status/va", "controller": "TransaksiController@checkPaymentVA"},
+          {"method": "GET", "path": "/check/status/kodebayar", "controller": "TransaksiController@checkPaymentKodeBayar"},
+          {"method": "GET", "path": "/check/installment", "controller": "TransaksiController@checkInstallmentPayment"},
+          {"method": "GET", "path": "/check/installment/va", "controller": "TransaksiController@checkInstallmentPaymentVA"},
+          {"method": "GET", "path": "/check/installment/kodebayar", "controller": "TransaksiController@checkInstallmentPaymentKodeBayar"},
+          {"method": "GET", "path": "/dashboard", "controller": "TransaksiController@getDashboard"},
+          {"method": "GET", "path": "/dashboard/opd/{opdId}", "controller": "TransaksiController@getDashboardByOpd"},
+          {"method": "GET", "path": "/summary/list", "controller": "TransaksiController@getTransaksiByOpdAndStatus"},
+          {"method": "GET", "path": "/summary/installment/list", "controller": "TransaksiController@getInstallmentTransaksiByOpdAndStatus"},
+          {"method": "GET", "path": "/summary/opd/list", "controller": "TransaksiController@getTransaksiAllPerOPD"},
+          {"method": "POST", "path": "/update/used-time", "controller": "TransaksiController@updateUsedTime"},
+          {"method": "GET", "path": "/search/installment", "controller": "TransaksiController@searchOpdInstallment"}
+        ]
+      },
+      "dashboard_revenue": {
+        "description": "Dashboard pendapatan (revenue-based, optimized)",
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/dashboard",
+        "endpoints": [
+          {"method": "GET", "path": "/revenue", "controller": "DashboardController@getDashboard"},
+          {"method": "GET", "path": "/revenue/opd/{opdId}", "controller": "DashboardController@getDashboardByOpd"},
+          {"method": "GET", "path": "/targets", "controller": "DashboardController@getRetributionTargets"},
+          {"method": "GET", "path": "/targets/opd/{opdId}", "controller": "DashboardController@getRetributionTargetsByOpd"},
+          {"method": "GET", "path": "/opd/{opdId}/lokasi", "controller": "DashboardController@getRevenueByLokasiForOpd"},
+          {"method": "GET", "path": "/lokasi/{lokasiId}/retribusi", "controller": "DashboardController@getRetribusiBreakdownForLokasi"}
+        ]
+      },
+      "dashboard_web_external": {
+        "description": "Dashboard API untuk web integrasi eksternal",
+        "middleware": ["api", "api.token"],
+        "prefix": "/api/dashboard-web",
+        "endpoints": [
+          {"method": "GET", "path": "/", "controller": "Api\\DashboardWebController@getDashboardData", "deprecated": true},
+          {"method": "GET", "path": "/summary", "controller": "Api\\DashboardWebController@getSummary"},
+          {"method": "GET", "path": "/retribusi-breakdown", "controller": "Api\\DashboardWebController@getRetribusiBreakdown"},
+          {"method": "GET", "path": "/opd-performance", "controller": "Api\\DashboardWebController@getOpdPerformance"},
+          {"method": "GET", "path": "/realisasi-vs-target", "controller": "Api\\DashboardWebController@getRealisasiVsTarget"},
+          {"method": "GET", "path": "/opd", "controller": "Api\\DashboardWebController@getOpdList"},
+          {"method": "GET", "path": "/retribusi", "controller": "Api\\DashboardWebController@getRetribusiList"},
+          {"method": "GET", "path": "/lokasi", "controller": "Api\\DashboardWebController@getLokasiList"},
+          {"method": "GET", "path": "/objek", "controller": "Api\\DashboardWebController@getObjekList"},
+          {"method": "GET", "path": "/performance-detail", "controller": "Api\\DashboardWebController@getPerformanceDetail"},
+          {"method": "GET", "path": "/realisasi-detail", "controller": "Api\\DashboardWebController@getRealisasiDetail"},
+          {"method": "GET", "path": "/opd/{opdId}/lokasi", "controller": "Api\\DashboardWebController@getRealisasiLokasiByOpd"},
+          {"method": "GET", "path": "/opd/{opdId}/lokasi/{lokasiId}/retribusi", "controller": "Api\\DashboardWebController@getRealisasiRetribusiByLokasi"},
+          {"method": "GET", "path": "/helper/lokasi-by-opd", "controller": "Api\\DashboardWebController@getLokasiByOpd"},
+          {"method": "GET", "path": "/helper/rincian-by-retribusi", "controller": "Api\\DashboardWebController@getRincianByRetribusi"}
+        ]
+      },
+      "external_payment": {
+        "description": "Callback dari payment gateway eksternal",
+        "middleware": ["api", "client.secret"],
+        "endpoints": [
+          {"method": "POST", "path": "/external/payment/callback", "controller": "TransaksiController@externalPaymentCallback"}
+        ]
+      },
+      "email_verification": {
+        "endpoints": [
+          {"method": "POST", "path": "/email-verification/resend", "controller": "VerificationController@resend"}
+        ]
+      },
+      "master_data": {
+        "description": "CRUD master data (untuk admin via API)",
+        "middleware": ["api", "client.secret", "app.version"],
+        "prefix": "/api/master",
+        "resources": [
+          {"resource": "retribusi", "methods": ["GET /retribusi", "POST /retribusi/create", "PUT /retribusi/update/{id}"]},
+          {"resource": "rincian-retribusi", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "sub-rincian-retribusi", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "chief", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "opd", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "lokasi-objek", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "type-object", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "payment", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "payment-status", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "document", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "satuan", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "tpj", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "role", "methods": ["GET", "POST /create", "PUT /update/{id}"]},
+          {"resource": "objek/search", "methods": ["GET"]}
+        ]
+      }
+    },
+    "web_routes": {
+      "public": [
+        {"method": "GET", "path": "/", "redirect": "login"},
+        {"method": "GET", "path": "/email/verify/{id}/{hash}", "controller": "VerificationController@verify", "middleware": ["signed"], "name": "verification.verify"}
+      ],
+      "guest_only": {
+        "middleware": ["guest"],
+        "endpoints": [
+          {"method": "GET", "path": "/login", "controller": "Web\\AuthWebController@showLogin", "name": "login"},
+          {"method": "POST", "path": "/login", "controller": "Web\\AuthWebController@login", "name": "login.post"},
+          {"method": "GET", "path": "/register", "controller": "Web\\AuthWebController@showRegister", "name": "register"},
+          {"method": "POST", "path": "/register", "controller": "Web\\AuthWebController@register", "name": "register.post"},
+          {"method": "GET", "path": "/forgot-password", "controller": "Web\\AuthWebController@showForgotPassword", "name": "password.request"},
+          {"method": "POST", "path": "/forgot-password", "controller": "Web\\AuthWebController@sendResetLink", "name": "password.email"},
+          {"method": "GET", "path": "/reset-password", "controller": "AuthController@showResetForm", "name": "password.reset"},
+          {"method": "GET", "path": "/reset-password-success", "controller": "AuthController@showResetSucess", "name": "password.reset.success"}
+        ]
+      },
+      "authenticated": {
+        "middleware": ["auth:web"],
+        "general": [
+          {"method": "POST", "path": "/logout", "controller": "Web\\AuthWebController@logout", "name": "logout"},
+          {"method": "GET", "path": "/welcome", "view": "welcome", "name": "welcome"}
+        ],
+        "dashboard": [
+          {"method": "GET", "path": "/dashboard", "controller": "Web\\DashboardController@index", "name": "dashboard"},
+          {"method": "GET", "path": "/dashboard/opd", "controller": "Web\\DashboardController@opdList", "name": "dashboard.opd.list"},
+          {"method": "GET", "path": "/dashboard/retribusi", "controller": "Web\\DashboardController@retribusiList", "name": "dashboard.retribusi.list"},
+          {"method": "GET", "path": "/dashboard/lokasi", "controller": "Web\\DashboardController@lokasiList", "name": "dashboard.lokasi.list"},
+          {"method": "GET", "path": "/dashboard/objek", "controller": "Web\\DashboardController@objekList", "name": "dashboard.objek.list"},
+          {"method": "GET", "path": "/dashboard/performance", "controller": "Web\\DashboardController@performanceDetail", "name": "dashboard.performance"},
+          {"method": "GET", "path": "/dashboard/realisasi", "controller": "Web\\DashboardController@realisasiDetail", "name": "dashboard.realisasi"},
+          {"method": "GET", "path": "/dashboard/realisasi/opd/{opdId}/lokasi", "controller": "Web\\DashboardController@realisasiLokasiByOpd", "name": "dashboard.realisasi.lokasi-by-opd"},
+          {"method": "GET", "path": "/dashboard/realisasi/opd/{opdId}/lokasi/{lokasiId}/retribusi", "controller": "Web\\DashboardController@realisasiRetribusiByLokasi", "name": "dashboard.realisasi.retribusi-by-lokasi"},
+          {"method": "GET", "path": "/dashboard/ajax/lokasi-by-opd", "controller": "Web\\DashboardController@getLokasiByOpd", "name": "dashboard.ajax.lokasi"},
+          {"method": "GET", "path": "/dashboard/ajax/rincian-by-retribusi", "controller": "Web\\DashboardController@getRincianByRetribusi", "name": "dashboard.ajax.rincian"}
+        ],
+        "master_data": {
+          "description": "Resource routes (Route::resource) - menghasilkan 7 endpoints standar (index/create/store/show/edit/update/destroy)",
+          "prefix": "/master",
+          "name_prefix": "master.",
+          "resources": [
+            {"name": "retribusi", "controller": "Web\\MasterRetribusiController"},
+            {"name": "rincian-retribusi", "controller": "Web\\MasterRincianRetribusiController"},
+            {"name": "sub-rincian-retribusi", "controller": "Web\\MasterSubRincianRetribusiController"},
+            {"name": "chief", "controller": "Web\\MasterChiefWebController"},
+            {"name": "opd", "controller": "Web\\MasterOpdWebController"},
+            {"name": "lokasi-objek", "controller": "Web\\MasterLokasiObjekController"},
+            {"name": "type-object", "controller": "Web\\MasterTypeObjectController"},
+            {"name": "objek", "controller": "Web\\MasterObjekController", "extra_ajax": ["GET objek/ajax/lokasi", "GET objek/ajax/rincian"]},
+            {"name": "payment", "controller": "Web\\MasterPaymentWebController"},
+            {"name": "payment-status", "controller": "Web\\MasterPaymentStatusController"},
+            {"name": "document", "controller": "Web\\MasterDocumentWebController"},
+            {"name": "satuan", "controller": "Web\\MasterSatuanController"},
+            {"name": "tpj", "controller": "Web\\MasterTpjController"},
+            {"name": "role", "controller": "Web\\MasterRoleWebController"}
+          ]
+        },
+        "revenue": [
+          {"resource": "revenue", "controller": "Web\\RevenueWebController", "type": "Route::resource"}
+        ],
+        "retribution_target": [
+          {"method": "GET", "path": "/retribution-target/ajax/lokasi", "controller": "Web\\RetributionTargetWebController@getLokasiByOpd"},
+          {"method": "GET", "path": "/retribution-target/ajax/rincian", "controller": "Web\\RetributionTargetWebController@getRincianByRetribusi"},
+          {"method": "GET", "path": "/retribution-target/ajax/sub-rincian", "controller": "Web\\RetributionTargetWebController@getSubRincianByRincian"},
+          {"resource": "retribution-target", "controller": "Web\\RetributionTargetWebController", "type": "Route::resource"}
+        ]
+      }
+    }
+  },
+  "controllers": {
+    "api_controllers": {
+      "AuthController": "Login/register/JWT/password reset/external auth",
+      "ProfileController": "User profile",
+      "OpdController": "OPD data lookup",
+      "RetributionController": "Retribusi master lookup",
+      "LokasiController": "Location/parking lookup",
+      "RoleController": "Role lookup",
+      "ObjectController": "Objek retribusi CRUD + search",
+      "CartController": "Shopping cart untuk transaksi",
+      "CartObjectController": "Cart items management",
+      "MasterChiefController": "Pimpinan dinas",
+      "MasterDataController": "Generic master data CRUD (multiple entities) - 36KB file",
+      "DocumentController": "PDF/Doc generator (SPDORD/SKRD/STRD) - 87KB file",
+      "TransaksiController": "Core transaction logic (284KB - largest controller, contains payment integration)",
+      "DashboardController": "Dashboard revenue + targets - 41KB",
+      "VerificationController": "Email verification",
+      "Api\\DashboardWebController": "External web dashboard API"
+    },
+    "web_controllers": {
+      "Web\\AuthWebController": "Session-based login/register/logout",
+      "Web\\DashboardController": "Web dashboard pages - 43KB",
+      "Web\\MasterRetribusiController": "CRUD master retribusi",
+      "Web\\MasterRincianRetribusiController": "CRUD rincian retribusi",
+      "Web\\MasterSubRincianRetribusiController": "CRUD sub rincian retribusi",
+      "Web\\MasterChiefWebController": "CRUD pimpinan",
+      "Web\\MasterOpdWebController": "CRUD OPD",
+      "Web\\MasterLokasiObjekController": "CRUD lokasi objek",
+      "Web\\MasterTypeObjectController": "CRUD tipe objek",
+      "Web\\MasterObjekController": "CRUD objek retribusi (dengan AJAX dropdown)",
+      "Web\\MasterPaymentWebController": "CRUD metode pembayaran",
+      "Web\\MasterPaymentStatusController": "CRUD status pembayaran",
+      "Web\\MasterDocumentWebController": "CRUD jenis dokumen",
+      "Web\\MasterSatuanController": "CRUD satuan",
+      "Web\\MasterTpjController": "CRUD TPJ",
+      "Web\\MasterRoleWebController": "CRUD role",
+      "Web\\RevenueWebController": "Manajemen pendapatan",
+      "Web\\RetributionTargetWebController": "Target retribusi (dengan AJAX cascade dropdown)"
+    }
+  },
+  "models": {
+    "users_and_auth": ["User", "MasterRole"],
+    "master_data": [
+      "MasterOpd - OPD (Organisasi Perangkat Daerah)",
+      "MasterChief - Pimpinan/Kepala",
+      "MasterRetribusi - Jenis retribusi",
+      "MasterRincianRetribusi - Rincian retribusi",
+      "MasterSubRincianRetribusi - Sub rincian retribusi",
+      "MasterObjek - Objek retribusi",
+      "MasterObjectType - Tipe objek",
+      "MasterLokasiObjek - Lokasi objek",
+      "MasterPayment - Metode pembayaran",
+      "MasterPaymentStatus - Status pembayaran",
+      "MasterDocument - Tipe dokumen",
+      "MasterStatusDokumen - Status dokumen",
+      "MasterStatusObjek - Status objek",
+      "MasterSatuan - Satuan ukur",
+      "MasterTpj - TPJ",
+      "MasterRules - Rules",
+      "MasterCurrency - Mata uang"
+    ],
+    "transactional": [
+      "Transaksi - Header transaksi",
+      "TransaksiObjek - Detail item per transaksi",
+      "InstallmentTransaction - Cicilan",
+      "Cart - Keranjang",
+      "CartObject - Item di keranjang",
+      "Document - File dokumen",
+      "Revenue - Pendapatan",
+      "RetributionTargets - Target retribusi (untuk dashboard realisasi vs target)",
+      "Rating - Penilaian"
+    ],
+    "operational": [
+      "BranchOperationalRule",
+      "BranchOperationalHours",
+      "ExchangeRate"
+    ]
+  },
+  "database": {
+    "engine": "MySQL",
+    "database_name": "eretribusi_db",
+    "key_migrations": [
+      "2014_10_12_000000_create_users_table",
+      "2014_10_12_100000_create_password_reset_tokens_table",
+      "2019_08_19_000000_create_failed_jobs_table",
+      "2019_12_14_000001_create_personal_access_tokens_table",
+      "2025_09_10_081613_create_cart_objects_table",
+      "2025_10_26_085905_create_exchange_rates_table",
+      "2025_10_26_104300_create_master_currencies_table",
+      "2025_11_02_050713_create_master_chiefs_table",
+      "2025_11_12_031900_add_npwrd_to_users_table",
+      "2025_11_15_100134_create_branch_operational_rules_table",
+      "2025_11_15_100601_create_branch_operational_hours_table",
+      "2026_02_25_225108_create_retribution_targets_table",
+      "2026_04_01_091500_add_indexes_to_revenues_and_targets_for_performance",
+      "2026_04_02_094000_optimize_revenues_table_structure",
+      "2026_04_02_100614_create_sessions_table"
+    ],
+    "note": "Banyak tabel master kemungkinan dibuat via SQL dump (eretribusi_db.sql, 20MB+) bukan via migration"
+  },
+  "business_domain": {
+    "description": "Sistem Retribusi Daerah Pemerintah Provinsi Lampung",
+    "core_concepts": {
+      "OPD": "Organisasi Perangkat Daerah - dinas/instansi yang mengelola retribusi",
+      "Retribusi": "Pungutan daerah dengan tingkatan: Retribusi → Rincian Retribusi → Sub Rincian Retribusi",
+      "Objek": "Item konkret yang dipungut retribusinya (cth: Pelajar Kolam Renang, Parkir, dll)",
+      "Lokasi Objek": "Tempat objek retribusi berada (cth: Kolam Renang Pahoman)",
+      "Transaksi": "Permintaan pembayaran retribusi oleh Wajib Retribusi (WR)",
+      "NPWRD": "Nomor Pokok Wajib Retribusi Daerah",
+      "SPDORD/SKRD/STRD": "Dokumen resmi yang digenerate sistem"
+    },
+    "transaction_statuses": {
+      "1": "Draft / Menunggu (menunggu respon WR / approval admin)",
+      "2": "Active / Aktif (telah disetujui, menunggu pembayaran)",
+      "3": "Paid / Terbayar (sudah lunas)",
+      "4": "Cancelled by User (dibatalkan WR)",
+      "5": "Cancelled by OPD (dibatalkan admin)"
+    },
+    "user_roles": {
+      "5": "Admin OPD (master_role_id = 5, akses scoped ke master_opd_id)",
+      "6": "Super Admin (master_role_id = 6, akses penuh ke semua OPD)",
+      "others": "Mobile app users (Wajib Retribusi)"
+    },
+    "payment_methods": [
+      "QRIS",
+      "Virtual Account (VA)",
+      "Kode Bayar",
+      "Installment / Cicilan"
+    ]
+  },
+  "integrations": {
+    "payment_gateway": {
+      "description": "Integrasi dengan payment provider eksternal",
+      "callback_endpoint": "POST /api/external/payment/callback",
+      "methods_supported": ["QRIS", "VA", "Kode Bayar"]
+    },
+    "external_partners": {
+      "description": "Integrasi pihak ketiga via X-API-TOKEN header",
+      "auth_endpoints": "/api/auth/external/{login,register}",
+      "dashboard_endpoints": "/api/dashboard-web/*",
+      "purpose": "External web/portal yang ingin embed dashboard atau auth"
+    },
+    "mobile_app": {
+      "description": "Mobile app (Android/iOS) utama konsumen API",
+      "min_version_enforcement": "MIN_APP_VERSION env (default 27), response 426 jika outdated",
+      "auth": "JWT via /api/auth/login + X-Client-Secret + X-App-Version headers"
+    }
+  },
+  "file_storage": {
+    "private_files": "TransaksiController@downloadPrivateFile - file transaksi private",
+    "profile_pictures": "ProfileController@getProfilePicture",
+    "object_images": "ObjectController@getObjectImage",
+    "documents": "DocumentController@openDocument - PDF/Word generated documents",
+    "media_library": "spatie/laravel-medialibrary untuk media handling"
+  },
+  "documentation_files": {
+    "README.md": "Project overview",
+    "API_DASHBOARD_DOCUMENTATION.md": "Dashboard API docs",
+    "DASHBOARD_API_RESPONSE_EXAMPLES.json": "Response examples",
+    "DASHBOARD_API_UPDATE_DOCUMENTATION.md": "Update docs (45KB)",
+    "DASHBOARD_DRILLDOWN_API_GUIDE.md": "Drill-down guide",
+    "DASHBOARD_OPTIMIZATION_SUMMARY.md": "Performance optimization notes",
+    "EXTERNAL_LOGIN_API.md": "External integration auth",
+    "FORGOT_PASSWORD_SETUP.md": "Forgot password flow",
+    "PASSWORD_RESET_PAGE_GUIDE.md": "Reset password",
+    "QUICK_START_WEB.md": "Web admin quick start",
+    "REDIS-FIX-GUIDE.md": "Redis troubleshooting",
+    "WEB_INTERFACE_README.md": "Web interface guide",
+    "postman-collection.json": "Postman collection (115KB)"
+  },
+  "key_observations": {
+    "architecture_notes": [
+      "TransaksiController.php sangat besar (284KB) - kandidat untuk refactoring ke service classes",
+      "DocumentController.php juga besar (87KB) karena handle banyak PDF generation",
+      "Web admin panel ditambahkan setelah API (folder Web/) - hybrid approach",
+      "Dashboard ada 3 variant: TransaksiController, DashboardController (revenue-based, optimized), Api\\DashboardWebController (external)",
+      "Default guard adalah JWT (api), web guard hanya untuk admin panel"
+    ],
+    "security_layers": [
+      "Layer 1: X-Client-Secret untuk semua mobile API calls",
+      "Layer 2: X-App-Version enforcement (mencegah app versi lama)",
+      "Layer 3: JWT auth untuk protected endpoints",
+      "Layer 4: X-API-TOKEN untuk integrasi eksternal",
+      "Layer 5: Role-based scoping (CheckRole middleware - role 5 vs 6)",
+      "Layer 6: OPD-based data scoping (master_opd_id pada queries)"
+    ],
+    "performance_optimizations": [
+      "Redis caching (predis)",
+      "Database indexes pada revenues & targets (migration 2026_04_01)",
+      "Optimized revenues table structure (migration 2026_04_02)",
+      "Separated lightweight dashboard endpoints (/summary, /retribusi-breakdown, dll) untuk mengganti single heavy endpoint",
+      "AJAX cascade dropdowns (lokasi-by-opd, rincian-by-retribusi, sub-rincian-by-rincian) untuk form retribution-target"
+    ],
+    "potential_issues": [
+      "Lint warnings: View [admin.transactions.draft|active|paid|...] not found - karena routes pakai prefix yang sama dengan show() method (Laravel mengira admin.transactions.{referenceNo} = admin.transactions.draft), tetapi tidak masalah karena methods tersebut return JSON (AJAX), bukan view",
+      "Kernel.php belum register CheckRole middleware alias (saat ini hanya client.secret, app.version, api.token)",
+      "Banyak master data CRUD diakses dari 2 controller (API MasterDataController dan Web/Master*Controller) - potensi duplikasi logic"
+    ]
+  },
+  "environment_variables": {
+    "required": [
+      "APP_KEY",
+      "DB_DATABASE=eretribusi_db",
+      "DB_USERNAME, DB_PASSWORD, DB_HOST",
+      "JWT_SECRET",
+      "API_CLIENT_SECRET - untuk middleware client.secret",
+      "MIN_APP_VERSION - default 27",
+      "EXTERNAL_API_TOKEN - untuk integrasi eksternal",
+      "REDIS_HOST, REDIS_PORT, REDIS_PASSWORD",
+      "MAIL_* - untuk forgot password email"
+    ]
+  }
+}

@@ -1,0 +1,78 @@
+@extends('layouts.app')
+@section('title', 'Tambah Rincian Retribusi')
+@section('content')
+<div class="page-container glass-page">
+    <div class="page-header">
+        <div class="page-title-wrapper">
+            <div class="title-icon-wrap"><span class="title-icon">📝</span></div>
+            <div>
+                <h1 class="page-title">Tambah Rincian Retribusi</h1>
+                <p class="page-subtitle">Tambahkan data rincian retribusi baru</p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a href="{{ route('master.rincian-retribusi.index') }}" class="btn-ghost">← Kembali</a>
+        </div>
+    </div>
+    <div class="glass-card">
+        <div class="glass-card-header">
+            <span class="glass-card-icon">➕</span>
+            <h3 class="glass-card-title">Form Rincian Retribusi</h3>
+        </div>
+        <div class="glass-card-body">
+            <form action="{{ route('master.rincian-retribusi.store') }}" method="POST" id="rincianForm">
+                @csrf
+                <div class="form-grid-2">
+                    <div class="form-group-glass">
+                        <label class="glass-label" for="master_tipe_retribusi_id">Jenis Retribusi <span class="required-star">*</span></label>
+                        <select id="master_tipe_retribusi_id" name="master_tipe_retribusi_id"
+                            class="glass-input @error('master_tipe_retribusi_id') is-invalid @enderror" required>
+                            <option value="">-- Pilih Jenis Retribusi --</option>
+                            @foreach($retribusis as $retribusi)
+                                <option value="{{ $retribusi->id }}" {{ old('master_tipe_retribusi_id') == $retribusi->id ? 'selected' : '' }}>
+                                    {{ $retribusi->nama_retribusi }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('master_tipe_retribusi_id')<span class="glass-error">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="form-group-glass">
+                        <label class="glass-label" for="rincian_retribusi">Nama Rincian <span class="required-star">*</span></label>
+                        <input type="text" id="rincian_retribusi" name="rincian_retribusi"
+                            class="glass-input @error('rincian_retribusi') is-invalid @enderror"
+                            value="{{ old('rincian_retribusi') }}"
+                            placeholder="Contoh: Pemakaian Kekayaan Daerah" required autofocus>
+                        @error('rincian_retribusi')<span class="glass-error">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+                <div class="glass-form-actions">
+                    <button type="submit" class="btn-primary-glass">💾 Simpan</button>
+                    <a href="{{ route('master.rincian-retribusi.index') }}" class="btn-ghost">Batal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
+@push('styles')
+<style>
+.glass-page{padding:1.5rem}
+.glass-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(37,99,235,0.12);border-radius:1rem;box-shadow:0 8px 32px rgba(37,99,235,0.08);overflow:hidden}
+.glass-card-header{display:flex;align-items:center;gap:.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid rgba(37,99,235,0.08);background:rgba(255,255,255,0.5)}
+.glass-card-icon{font-size:1.25rem}.glass-card-title{font-size:1rem;font-weight:700;color:#1e40af;flex:1;margin:0}
+.glass-card-body{padding:1.5rem}
+.form-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;margin-bottom:1.25rem}
+.form-group-glass{display:flex;flex-direction:column;gap:.5rem}
+.glass-label{font-size:.8rem;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:.04em}
+.required-star{color:#ef4444}
+.glass-input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,0.8);border:1.5px solid rgba(37,99,235,0.2);border-radius:.625rem;font-size:.9rem;color:#1f2937;transition:all .2s;outline:none;box-sizing:border-box}
+.glass-input:focus{border-color:#2563eb;background:rgba(255,255,255,0.95);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.glass-input.is-invalid{border-color:#ef4444}.glass-error{font-size:.78rem;color:#ef4444}
+.glass-form-actions{display:flex;gap:.75rem;padding-top:1.25rem;border-top:1px solid rgba(37,99,235,0.1)}
+.btn-primary-glass{display:inline-flex;align-items:center;gap:.5rem;padding:.675rem 1.5rem;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:.5rem;font-size:.875rem;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(37,99,235,0.3);transition:all .2s;text-decoration:none}
+.btn-primary-glass:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,0.4)}
+.btn-ghost{display:inline-flex;align-items:center;gap:.5rem;padding:.675rem 1.25rem;background:rgba(255,255,255,0.7);color:#374151;border:1px solid rgba(37,99,235,0.15);border-radius:.5rem;font-size:.875rem;font-weight:600;text-decoration:none;transition:all .2s;cursor:pointer}
+.btn-ghost:hover{background:rgba(255,255,255,0.95)}
+@media(max-width:768px){.form-grid-2{grid-template-columns:1fr}}
+</style>
+@endpush

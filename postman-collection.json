@@ -1,0 +1,2317 @@
+﻿{
+  "info": {
+    "name": "E-Retribusi API",
+    "description": "Complete API documentation for E-Retribusi System. Required headers for most routes: X-Client-Secret, X-App-Version. Protected routes also need: Authorization: Bearer {token}",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://e-retribusi-trial.bapenda-lampungprov.com/api", "type": "string" },
+    { "key": "clientSecret", "value": "a9FvK3xL8mQ2rT7zN5bC1dE4gH6jP0sW9yR2uX5kL8cV1tZ3nB60dac3fa9f95b9", "type": "string" },
+    { "key": "appVersion", "value": "27", "type": "string" },
+    { "key": "authToken", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth","register"] },
+            "description": "Register new user account.\n\nRequired:\n- name (string, max:255)\n- address (string, max:255)\n- no_telp (string, max:255)\n- master_role_id (integer, exists:master_role)\n- email (string, unique, valid email)\n- password (string, min:6)\n- password_confirmation (string, must match password)\n\nOptional:\n- master_opd_id (integer, exists:master_opd)\n- nama_instansi (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"User Name\",\n  \"address\": \"Jl. Contoh No. 1\",\n  \"no_telp\": \"08123456789\",\n  \"master_role_id\": 2,\n  \"master_opd_id\": 1,\n  \"nama_instansi\": \"Nama Instansi\",\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] },
+            "description": "Login and receive JWT access token.\n\nRequired:\n- email (string)\n- password (string)\n\nResponse: access_token (save as {{authToken}} variable)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth","logout"] },
+            "description": "Logout current user and invalidate JWT token."
+          },
+          "response": []
+        },
+        {
+          "name": "Me (Get Current User)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/me", "host": ["{{baseUrl}}"], "path": ["me"] },
+            "description": "Get currently authenticated user info."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/refresh", "host": ["{{baseUrl}}"], "path": ["refresh"] },
+            "description": "Refresh JWT token. Returns new access_token."
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["auth","forgot-password"] },
+            "description": "Send password reset link to email. No X-Client-Secret or X-App-Version required.\n\nRequired:\n- email (string, must exist in users table)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["auth","reset-password"] },
+            "description": "Reset password using token received by email. No X-Client-Secret or X-App-Version required.\n\nRequired:\n- token (string, from reset email link)\n- email (string)\n- password (string, min:6)\n- password_confirmation (string, must match password)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset-token-from-email\",\n  \"email\": \"user@example.com\",\n  \"password\": \"newpassword123\",\n  \"password_confirmation\": \"newpassword123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Email Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/email-verification/resend", "host": ["{{baseUrl}}"], "path": ["email-verification","resend"] },
+            "description": "Resend email verification link.\n\nRequired:\n- email (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/user/profile", "host": ["{{baseUrl}}"], "path": ["user","profile"] },
+            "description": "Get current user profile with masterOpd and masterRole relations."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile Picture",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/user/profile/picture/{filename}", "host": ["{{baseUrl}}"], "path": ["user","profile","picture","{filename}"] },
+            "description": "Retrieve profile picture from private storage.\n\nPath param:\n- filename (string): value from user.profile_pict field"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/user/profile/update", "host": ["{{baseUrl}}"], "path": ["user","profile","update"] },
+            "description": "Update user profile. Uses multipart/form-data. All fields optional.\n\nOptional fields:\n- name (string, max:255)\n- address (string, max:500)\n- no_telp (string, max:20)\n- nama_instansi (string, max:255)\n- password (string, min:6)\n- password_confirmation (string, required if password is set)\n- profile_pict (file: jpeg/png/jpg/gif, max:10240KB)\n\nNote: email, master_opd_id, master_role_id cannot be changed.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Nama Baru", "type": "text", "description": "Optional, max:255" },
+                { "key": "address", "value": "Jl. Baru No. 2", "type": "text", "description": "Optional, max:500" },
+                { "key": "no_telp", "value": "08987654321", "type": "text", "description": "Optional, max:20" },
+                { "key": "nama_instansi", "value": "Instansi Baru", "type": "text", "description": "Optional, max:255" },
+                { "key": "password", "value": "newpassword123", "type": "text", "description": "Optional, min:6" },
+                { "key": "password_confirmation", "value": "newpassword123", "type": "text", "description": "Required if password is provided" },
+                { "key": "profile_pict", "type": "file", "src": [], "description": "Optional - image file (jpeg/png/jpg/gif, max 10MB)" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "OPD",
+      "item": [
+        {
+          "name": "Get OPD Data",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/opd/data", "host": ["{{baseUrl}}"], "path": ["opd","data"] },
+            "description": "Get all OPD (Organisasi Perangkat Daerah) data."
+          },
+          "response": []
+        },
+        {
+          "name": "Get OPD with Locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/opd/get", "host": ["{{baseUrl}}"], "path": ["opd","get"] },
+            "description": "Get OPD list with associated lokasi (locations)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Retribution",
+      "item": [
+        {
+          "name": "Get Retribution",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/retribution/get", "host": ["{{baseUrl}}"], "path": ["retribution","get"] },
+            "description": "Get all retribution types (master_retribusi)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Retribution by Location",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/retribution/by-location?location_id=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["retribution","by-location"],
+              "query": [
+                { "key": "location_id", "value": "1", "description": "Location ID (required)" }
+              ]
+            },
+            "description": "Get retributions filtered by location.\n\nQuery params:\n- location_id (integer, required)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Location",
+      "item": [
+        {
+          "name": "Get Location List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/location/list", "host": ["{{baseUrl}}"], "path": ["location","list"] },
+            "description": "Get all locations (master_lokasi_objek)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Parking Locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/location/parking", "host": ["{{baseUrl}}"], "path": ["location","parking"] },
+            "description": "Get locations that have parking objects."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Penetapan Khusus Locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/location/penetapan/khusus", "host": ["{{baseUrl}}"], "path": ["location","penetapan","khusus"] },
+            "description": "Get locations for special determination (penetapan khusus)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Role",
+      "item": [
+        {
+          "name": "Get Role Data",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/role/data", "host": ["{{baseUrl}}"], "path": ["role","data"] },
+            "description": "Get all roles (master_role)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Object",
+      "item": [
+        {
+          "name": "Get All Objects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/object/all?per_page=8",
+              "host": ["{{baseUrl}}"],
+              "path": ["object","all"],
+              "query": [
+                { "key": "master_opd_id", "value": "1", "description": "Filter by OPD ID (optional)" },
+                { "key": "master_lokasi_id", "value": "1", "description": "Filter by location ID (optional)" },
+                { "key": "master_retribusi_id", "value": "1", "description": "Filter by retribusi ID (optional)" },
+                { "key": "master_status_objek_id", "value": "1", "description": "Filter by object status ID (optional)" },
+                { "key": "master_type_object_id", "value": "1", "description": "Filter by object type ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8, optional)" }
+              ]
+            },
+            "description": "Get all objects (master_objek) with pagination. Requires auth.\n\nAll query params optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Data for Forms",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/master-data", "host": ["{{baseUrl}}"], "path": ["object","master-data"] },
+            "description": "Get all master data needed for object create/edit forms.\n\nReturns: opd, lokasi, retribusi, rincian_retribusi, sub_rincian_retribusi, master_status_objek, master_type_object, master_currency, master_role, master_rules, master_satuan, master_tpj."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Latest Objects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/latest", "host": ["{{baseUrl}}"], "path": ["object","latest"] },
+            "description": "Get latest created objects."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Highest Rated Objects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/highest/ratings", "host": ["{{baseUrl}}"], "path": ["object","highest","ratings"] },
+            "description": "Get objects sorted by highest average rating."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Most Transacted Objects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/highest/transactions", "host": ["{{baseUrl}}"], "path": ["object","highest","transactions"] },
+            "description": "Get objects sorted by most transactions."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Objects by Location",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/object/location?location_id=1&per_page=8",
+              "host": ["{{baseUrl}}"],
+              "path": ["object","location"],
+              "query": [
+                { "key": "location_id", "value": "1", "description": "Location ID (required)" },
+                { "key": "master_opd_id", "value": "1", "description": "Filter by OPD ID (optional)" },
+                { "key": "master_retribusi_id", "value": "1", "description": "Filter by retribusi ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8, optional)" }
+              ]
+            },
+            "description": "Get objects filtered by location.\n\nQuery params:\n- location_id (integer, required)\n- master_opd_id (optional)\n- master_retribusi_id (optional)\n- per_page (optional, default: 8)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Penetapan Khusus Objects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/penetapan/khusus", "host": ["{{baseUrl}}"], "path": ["object","penetapan","khusus"] },
+            "description": "Get objects for special determination (penetapan khusus)."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Objects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/object/search?q=keyword&per_page=8",
+              "host": ["{{baseUrl}}"],
+              "path": ["object","search"],
+              "query": [
+                { "key": "q", "value": "keyword", "description": "Search keyword (required)" },
+                { "key": "master_opd_id", "value": "1", "description": "Filter by OPD ID (optional)" },
+                { "key": "master_lokasi_id", "value": "1", "description": "Filter by location ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8, optional)" }
+              ]
+            },
+            "description": "Search objects by keyword.\n\nQuery params:\n- q (string, required)\n- master_opd_id (optional)\n- master_lokasi_id (optional)\n- per_page (optional, default: 8)"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Penetapan Khusus Objects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/object/search/penetapan/khusus?q=keyword",
+              "host": ["{{baseUrl}}"],
+              "path": ["object","search","penetapan","khusus"],
+              "query": [
+                { "key": "q", "value": "keyword", "description": "Search keyword (required)" }
+              ]
+            },
+            "description": "Search special determination objects.\n\nQuery params:\n- q (string, required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Object Image",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/image/{filename}", "host": ["{{baseUrl}}"], "path": ["object","image","{filename}"] },
+            "description": "Retrieve object image from private storage.\n\nPath param:\n- filename (string): image filename from object record"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Object by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/{id}", "host": ["{{baseUrl}}"], "path": ["object","{id}"] },
+            "description": "Get single object details by ID.\n\nPath param:\n- id (integer): object ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Object",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/create", "host": ["{{baseUrl}}"], "path": ["object","create"] },
+            "description": "Create new object. Uses multipart/form-data (supports image upload).\n\nRequired fields:\n- master_opd_id (integer, exists:master_opd)\n- master_lokasi_id (integer, exists:master_lokasi_objek)\n- uraian_objek (string, max:255)\n- master_retribusi_id (integer, exists:master_retribusi)\n- master_rincian_retribusi_id (integer, exists:master_rincian_retribusi)\n- rincian_objek (string, max:255)\n- sub_rincian_objek (string, max:255)\n- master_satuan_id (integer, exists:master_satuan)\n- master_rules_id (integer, exists:master_rules)\n- master_tpj_id (integer, exists:master_tpj)\n- harga_objek (numeric, min:0)\n- master_status_objek_id (integer, exists:master_status_objek)\n- master_type_object_id (integer, exists:master_type_object)\n\nOptional fields:\n- sub_rincian_retribusi (integer)\n- master_role_id (integer)\n- harga_objek_asing (numeric)\n- required_document (string)\n- latitude (decimal)\n- longitude (decimal)\n- images[] (file, multiple, jpeg/png/jpg/gif)",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "master_opd_id", "value": "1", "type": "text", "description": "Required - OPD ID (exists:master_opd)" },
+                { "key": "master_lokasi_id", "value": "1", "type": "text", "description": "Required - Location ID (exists:master_lokasi_objek)" },
+                { "key": "uraian_objek", "value": "Deskripsi objek retribusi", "type": "text", "description": "Required, max:255" },
+                { "key": "master_retribusi_id", "value": "1", "type": "text", "description": "Required - Retribusi ID (exists:master_retribusi)" },
+                { "key": "master_rincian_retribusi_id", "value": "1", "type": "text", "description": "Required - Rincian retribusi ID" },
+                { "key": "sub_rincian_retribusi", "value": "1", "type": "text", "description": "Optional - Sub rincian retribusi ID" },
+                { "key": "rincian_objek", "value": "Rincian objek", "type": "text", "description": "Required, max:255" },
+                { "key": "sub_rincian_objek", "value": "Sub rincian objek", "type": "text", "description": "Required, max:255" },
+                { "key": "master_role_id", "value": "2", "type": "text", "description": "Optional - Role ID" },
+                { "key": "master_satuan_id", "value": "1", "type": "text", "description": "Required - Satuan ID (exists:master_satuan)" },
+                { "key": "master_rules_id", "value": "1", "type": "text", "description": "Required - Rules ID (exists:master_rules)" },
+                { "key": "master_tpj_id", "value": "1", "type": "text", "description": "Required - TPJ ID (exists:master_tpj)" },
+                { "key": "harga_objek", "value": "100000", "type": "text", "description": "Required - Price (numeric, min:0)" },
+                { "key": "harga_objek_asing", "value": "10", "type": "text", "description": "Optional - Foreign currency price" },
+                { "key": "master_status_objek_id", "value": "1", "type": "text", "description": "Required - Status ID (exists:master_status_objek)" },
+                { "key": "required_document", "value": "KTP, SIM", "type": "text", "description": "Optional - Required documents list" },
+                { "key": "master_type_object_id", "value": "1", "type": "text", "description": "Required - Type object ID (exists:master_type_object)" },
+                { "key": "latitude", "value": "-5.123456", "type": "text", "description": "Optional - GPS latitude" },
+                { "key": "longitude", "value": "105.123456", "type": "text", "description": "Optional - GPS longitude" },
+                { "key": "images[]", "type": "file", "src": [], "description": "Optional - Object images (multiple, jpeg/png/jpg/gif)" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Object (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/update/{id}", "host": ["{{baseUrl}}"], "path": ["object","update","{id}"] },
+            "description": "Update object by ID.\n\nPath param:\n- id (integer): object ID\n\nBody fields same as Create Object (all optional for update).\nAlso accepts POST method via /object/update/{id}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uraian_objek\": \"Updated description\",\n  \"harga_objek\": 150000,\n  \"master_status_objek_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Object",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/delete/{id}", "host": ["{{baseUrl}}"], "path": ["object","delete","{id}"] },
+            "description": "Delete object by ID.\n\nPath param:\n- id (integer): object ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Object Images",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/object/delete-images/{id}", "host": ["{{baseUrl}}"], "path": ["object","delete-images","{id}"] },
+            "description": "Delete all images of an object.\n\nPath param:\n- id (integer): object ID"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/get?opd_id=1&retribusi_id=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart","get"],
+              "query": [
+                { "key": "opd_id", "value": "1", "description": "OPD ID (required)" },
+                { "key": "retribusi_id", "value": "1", "description": "Retribution ID (required)" }
+              ]
+            },
+            "description": "Get user cart for specific OPD and retribusi. Auto-creates cart if not exists.\n\nQuery params:\n- opd_id (integer, required)\n- retribusi_id (integer, required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/cart/create", "host": ["{{baseUrl}}"], "path": ["cart","create"] },
+            "description": "Add object to cart. Uses multipart/form-data.\n\nRequired fields:\n- object_opd_id (integer): OPD ID of the object\n- object_retribusi_id (integer): retribusi ID of the object\n- object_id (integer): object ID to add\n- quantity_tpj (integer): quantity in TPJ unit\n- quantity_satuan (integer): quantity in satuan unit\n- total_amount (numeric): total price\n- start_date (date, YYYY-MM-DD): usage start date\n- end_date (date, YYYY-MM-DD): usage end date\n\nOptional:\n- document_support_link (file): supporting document",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "object_opd_id", "value": "1", "type": "text", "description": "Required - OPD ID of the object" },
+                { "key": "object_retribusi_id", "value": "1", "type": "text", "description": "Required - Retribution ID of the object" },
+                { "key": "object_id", "value": "1", "type": "text", "description": "Required - Object ID to add to cart" },
+                { "key": "quantity_tpj", "value": "1", "type": "text", "description": "Required - Quantity in TPJ unit" },
+                { "key": "quantity_satuan", "value": "10", "type": "text", "description": "Required - Quantity in satuan unit" },
+                { "key": "total_amount", "value": "1000000", "type": "text", "description": "Required - Total amount" },
+                { "key": "start_date", "value": "2024-01-01", "type": "text", "description": "Required - Start date (YYYY-MM-DD)" },
+                { "key": "end_date", "value": "2024-12-31", "type": "text", "description": "Required - End date (YYYY-MM-DD)" },
+                { "key": "document_support_link", "type": "file", "src": [], "description": "Optional - Supporting document file" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Item from Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/object/delete?id=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart","object","delete"],
+              "query": [
+                { "key": "id", "value": "1", "description": "CartObject ID (required) - from CartObject.id, NOT the object ID" }
+              ]
+            },
+            "description": "Remove an item from cart.\n\nQuery params:\n- id (integer, required): CartObject.id (not the master_objek.id)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/cart/update/quantity", "host": ["{{baseUrl}}"], "path": ["cart","update","quantity"] },
+            "description": "Update quantity of a cart item.\n\ntotal_amount is auto-recalculated as: quantity_tpj * quantity_satuan * harga_objek\n\nRequired:\n- id (integer): CartObject ID\n\nOptional (at least one required):\n- quantity_tpj (integer): new TPJ quantity\n- quantity_satuan (integer): new satuan quantity",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"quantity_tpj\": 2,\n  \"quantity_satuan\": 20\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chief",
+      "item": [
+        {
+          "name": "Get Chief Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/chief/get", "host": ["{{baseUrl}}"], "path": ["chief","get"] },
+            "description": "Get all chief data with masterOpd and masterRole relations. No authentication required."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Chief by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/chief/information/{id}", "host": ["{{baseUrl}}"], "path": ["chief","information","{id}"] },
+            "description": "Get chief information by ID. No authentication required.\n\nPath param:\n- id (integer): chief ID"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Document",
+      "item": [
+        {
+          "name": "Generate SPDORD",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/document/generate/spdord/{no_reference}", "host": ["{{baseUrl}}"], "path": ["document","generate","spdord","{no_reference}"] },
+            "description": "Generate SPDORD document as PDF.\n\nPath param:\n- no_reference (string): transaction reference_no"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate SKRD",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/document/generate/skrd/{no_reference}", "host": ["{{baseUrl}}"], "path": ["document","generate","skrd","{no_reference}"] },
+            "description": "Generate SKRD document as PDF.\n\nPath param:\n- no_reference (string): transaction reference_no"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate SKRD Installment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/document/generate/skrd/installment/{no_reference}/{id}", "host": ["{{baseUrl}}"], "path": ["document","generate","skrd","installment","{no_reference}","{id}"] },
+            "description": "Generate SKRD for installment transaction.\n\nPath params:\n- no_reference (string): transaction reference_no\n- id (integer): installment_transaction ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate STRD",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/document/generate/strd/{no_reference}/{id}", "host": ["{{baseUrl}}"], "path": ["document","generate","strd","{no_reference}","{id}"] },
+            "description": "Generate STRD document.\n\nPath params:\n- no_reference (string): transaction reference_no\n- id (integer): installment_transaction ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/document/getDocument", "host": ["{{baseUrl}}"], "path": ["document","getDocument"] },
+            "description": "Get document list for current authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/document/getAllDocument", "host": ["{{baseUrl}}"], "path": ["document","getAllDocument"] },
+            "description": "Get all documents (admin use)."
+          },
+          "response": []
+        },
+        {
+          "name": "Open Document",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/document/open/{filename}", "host": ["{{baseUrl}}"], "path": ["document","open","{filename}"] },
+            "description": "Open or download a document from private storage.\n\nPath param:\n- filename (string): document filename"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Document",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/document/search?q=keyword",
+              "host": ["{{baseUrl}}"],
+              "path": ["document","search"],
+              "query": [
+                { "key": "q", "value": "keyword", "description": "Search keyword (required)" }
+              ]
+            },
+            "description": "Search documents by keyword.\n\nQuery params:\n- q (string, required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Store Transaction Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/createTransaction", "host": ["{{baseUrl}}"], "path": ["transaksi","createTransaction"] },
+            "description": "Store a transaction document (DocumentController@store).\n\nBody fields depend on document type.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference_no\": \"TRX-001\",\n  \"total_amount\": 1000000\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Transaction",
+      "item": [
+        {
+          "name": "Get Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/getTransaksi?per_page=8",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","getTransaksi"],
+              "query": [
+                { "key": "opd_id", "value": "1", "description": "Filter by OPD ID (optional)" },
+                { "key": "master_status_pembayaran_id", "value": "1", "description": "Filter by payment status ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8)" }
+              ]
+            },
+            "description": "Get non-installment transactions with pagination.\nQuery (all optional): opd_id, master_status_pembayaran_id, per_page"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Installments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/installment?per_page=8",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","installment"],
+              "query": [
+                { "key": "opd_id", "value": "1", "description": "Filter by OPD ID (optional)" },
+                { "key": "master_status_pembayaran_id", "value": "1", "description": "Filter by payment status ID (optional)" },
+                { "key": "start_date", "value": "2024-01-01", "description": "Date range start YYYY-MM-DD (optional)" },
+                { "key": "end_date", "value": "2024-12-31", "description": "Date range end YYYY-MM-DD (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8)" }
+              ]
+            },
+            "description": "Get installment transactions (is_installment=1) with pagination.\nQuery (all optional): opd_id, master_status_pembayaran_id, start_date, end_date, per_page"
+          },
+          "response": []
+        },
+        {
+          "name": "Get OPD Installments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/installment/opd?opd_id=1&per_page=8",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","installment","opd"],
+              "query": [
+                { "key": "opd_id", "value": "1", "description": "OPD ID (required)" },
+                { "key": "master_status_pembayaran_id", "value": "1", "description": "Filter by payment status ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8)" }
+              ]
+            },
+            "description": "Get installment transactions for a specific OPD.\nQuery: opd_id (required), master_status_pembayaran_id (optional), per_page (optional)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transactions by OPD",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/opd/{masterOpdId}", "host": ["{{baseUrl}}"], "path": ["transaksi","opd","{masterOpdId}"] },
+            "description": "Get transactions for a specific OPD.\nPath param: masterOpdId (integer)"
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Get Transactions Without Object",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/without-object?per_page=8",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","without-object"],
+              "query": [
+                { "key": "master_status_pembayaran_id", "value": "1", "description": "Filter by payment status ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8)" }
+              ]
+            },
+            "description": "Get transactions with no associated objects.\nQuery (all optional): master_status_pembayaran_id, per_page"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transactions Grouped by Retribusi",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/grouped-by-retribusi", "host": ["{{baseUrl}}"], "path": ["transaksi","grouped-by-retribusi"] },
+            "description": "Get transactions grouped by retribusi type."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transactions by Retribusi ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/by-retribusi?retribusi_id=1",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","by-retribusi"],
+              "query": [{ "key": "retribusi_id", "value": "1", "description": "Retribusi ID (required)" }]
+            },
+            "description": "Get transactions filtered by retribusi ID.\nQuery: retribusi_id (required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Search OPD Installment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/search/installment?q=keyword&opd_id=1",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","search","installment"],
+              "query": [
+                { "key": "q", "value": "keyword", "description": "Search keyword (required)" },
+                { "key": "opd_id", "value": "1", "description": "OPD ID (optional)" }
+              ]
+            },
+            "description": "Search installment transactions for OPD.\nQuery: q (required), opd_id (optional)"
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/create", "host": ["{{baseUrl}}"], "path": ["transaksi","create"] },
+            "description": "Create transaction with objects (multipart/form-data).\n\nRequired:\n- transaksi_objek[0][object_id] (integer)\n- transaksi_objek[0][quantity] (integer)\n- transaksi_objek[0][tpj_quantity] (integer)\n- transaksi_objek[0][satuan_quantity] (integer)\n- transaksi_objek[0][total_amount] (numeric)\n- transaksi_objek[0][start_date] (YYYY-MM-DD)\n- transaksi_objek[0][end_date] (YYYY-MM-DD)\n- total_amount (numeric): grand total\n- master_status_pembayaran_id (integer)\n- master_tipe_pembayaran_id (integer)\n\nOptional:\n- transaksi_objek[0][document_support_link] (string)\n- npwrd, subject_name, subject_address, nama_instansi, no_telp\n- penalty_amount, registration_date, due_date\n- transaction_type, transaction_response\n- va (set to 1 to auto-generate VA number)\n- document_support_link (file)",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "transaksi_objek[0][object_id]", "value": "1", "type": "text", "description": "Required - Object ID" },
+                { "key": "transaksi_objek[0][quantity]", "value": "1", "type": "text", "description": "Required - Total quantity" },
+                { "key": "transaksi_objek[0][tpj_quantity]", "value": "1", "type": "text", "description": "Required - TPJ quantity" },
+                { "key": "transaksi_objek[0][satuan_quantity]", "value": "10", "type": "text", "description": "Required - Satuan quantity" },
+                { "key": "transaksi_objek[0][total_amount]", "value": "1000000", "type": "text", "description": "Required - Amount for this object" },
+                { "key": "transaksi_objek[0][start_date]", "value": "2024-01-01", "type": "text", "description": "Required - Start date (YYYY-MM-DD)" },
+                { "key": "transaksi_objek[0][end_date]", "value": "2024-12-31", "type": "text", "description": "Required - End date (YYYY-MM-DD)" },
+                { "key": "transaksi_objek[0][document_support_link]", "value": "", "type": "text", "description": "Optional - Document path string" },
+                { "key": "total_amount", "value": "1000000", "type": "text", "description": "Required - Grand total" },
+                { "key": "master_status_pembayaran_id", "value": "1", "type": "text", "description": "Required - Payment status ID" },
+                { "key": "master_tipe_pembayaran_id", "value": "1", "type": "text", "description": "Required - Payment type ID" },
+                { "key": "npwrd", "value": "1863010124001", "type": "text", "description": "Optional - NPWRD number" },
+                { "key": "subject_name", "value": "Nama Wajib Retribusi", "type": "text", "description": "Optional" },
+                { "key": "subject_address", "value": "Alamat WR", "type": "text", "description": "Optional" },
+                { "key": "nama_instansi", "value": "Nama Instansi", "type": "text", "description": "Optional" },
+                { "key": "no_telp", "value": "08123456789", "type": "text", "description": "Optional" },
+                { "key": "penalty_amount", "value": "0", "type": "text", "description": "Optional - Penalty amount" },
+                { "key": "registration_date", "value": "2024-01-01", "type": "text", "description": "Optional" },
+                { "key": "due_date", "value": "2024-01-31", "type": "text", "description": "Optional" },
+                { "key": "transaction_type", "value": "regular", "type": "text", "description": "Optional" },
+                { "key": "transaction_response", "value": "", "type": "text", "description": "Optional" },
+                { "key": "va", "value": "1", "type": "text", "description": "Optional - Set to 1 to auto-generate VA" },
+                { "key": "document_support_link", "type": "file", "src": [], "description": "Optional - Supporting document file" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Parking Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/create/parking", "host": ["{{baseUrl}}"], "path": ["transaksi","create","parking"] },
+            "description": "Create a parking transaction.\n\nRequired:\n- transaksi_objek (array): object_id, quantity, tpj_quantity, satuan_quantity, total_amount, start_date (YYYY-MM-DD), end_date (YYYY-MM-DD)\n- total_amount (numeric)\n- master_status_pembayaran_id (integer)\n\nOptional: npwrd, subject_name, subject_address, nama_instansi, no_telp, transaction_type, transaction_response, document_number",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaksi_objek\": [{\n    \"object_id\": 1,\n    \"quantity\": 1,\n    \"tpj_quantity\": 1,\n    \"satuan_quantity\": 1,\n    \"total_amount\": 5000,\n    \"start_date\": \"2024-01-01\",\n    \"end_date\": \"2024-01-01\",\n    \"document_support_link\": null\n  }],\n  \"total_amount\": 5000,\n  \"master_status_pembayaran_id\": 1,\n  \"subject_name\": \"Nama Pengemudi\",\n  \"no_telp\": \"08123456789\",\n  \"transaction_type\": \"parking\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change Transaction Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/change/status", "host": ["{{baseUrl}}"], "path": ["transaksi","change","status"] },
+            "description": "Change transaction status.\n\nRequired:\n- id (string): transaction reference_no\n- status (string): one of:\n  - cancelled_by_user -> sets master_status_pembayaran_id to 4\n  - cancelled_by_opd -> sets master_status_pembayaran_id to 5\n  - active_by_opd -> sets master_status_pembayaran_id to 2\n\nOptional:\n- transaction_response (string): reason for cancellation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"TRX-20240101-XXXX\",\n  \"status\": \"cancelled_by_user\",\n  \"transaction_response\": \"Dibatalkan oleh pengguna\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Used Time",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/update/used-time", "host": ["{{baseUrl}}"], "path": ["transaksi","update","used-time"] },
+            "description": "Update used time for a transaction object.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference_no\": \"TRX-20240101-XXXX\",\n  \"used_time\": \"2024-01-15\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Download Private File",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/file/{filename}", "host": ["{{baseUrl}}"], "path": ["transaksi","file","{filename}"] },
+            "description": "Download a private file associated with a transaction.\nPath param: filename (string)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get QR Image",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/generate/qr?reference_no=TRX-001",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","generate","qr"],
+              "query": [{ "key": "reference_no", "value": "TRX-001", "description": "Transaction reference_no (required)" }]
+            },
+            "description": "Generate QR code image for a transaction.\nQuery: reference_no (required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get VA",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/generate/va?reference_no=TRX-001",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","generate","va"],
+              "query": [{ "key": "reference_no", "value": "TRX-001", "description": "Transaction reference_no (required)" }]
+            },
+            "description": "Get Virtual Account (VA) number for a transaction.\nQuery: reference_no (required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Set Payment Installment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/payment?reference_no=TRX-001",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","payment"],
+              "query": [{ "key": "reference_no", "value": "TRX-001", "description": "Transaction reference_no (required)" }]
+            },
+            "description": "Set/trigger payment for an installment transaction.\nQuery: reference_no (required)"
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Check Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/check/status?reference_no=TRX-001",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","check","status"],
+              "query": [{ "key": "reference_no", "value": "TRX-001", "description": "Transaction reference_no (required)" }]
+            },
+            "description": "Check payment status of a transaction.\nQuery: reference_no (required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Payment Status by VA",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/check/status/va?va=1234567890",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","check","status","va"],
+              "query": [{ "key": "va", "value": "1234567890", "description": "VA number (required)" }]
+            },
+            "description": "Check payment status by VA number.\nQuery: va (required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Payment Status by Kode Bayar",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/check/status/kodebayar?kode_bayar=KB001",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","check","status","kodebayar"],
+              "query": [{ "key": "kode_bayar", "value": "KB001", "description": "Kode bayar (required)" }]
+            },
+            "description": "Check payment status by kode bayar.\nQuery: kode_bayar (required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Installment Payment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/check/installment?installment_ref_id=INST-001",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","check","installment"],
+              "query": [{ "key": "installment_ref_id", "value": "INST-001", "description": "Installment reference ID (required)" }]
+            },
+            "description": "Check payment status of an installment.\nQuery: installment_ref_id (required)"
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Check Installment Payment by VA",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/check/installment/va?va=1234567890",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","check","installment","va"],
+              "query": [{ "key": "va", "value": "1234567890", "description": "VA number (required)" }]
+            },
+            "description": "Check installment payment status by VA number.\nQuery: va (required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Installment Payment by Kode Bayar",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/check/installment/kodebayar?kode_bayar=KB001",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","check","installment","kodebayar"],
+              "query": [{ "key": "kode_bayar", "value": "KB001", "description": "Kode bayar (required)" }]
+            },
+            "description": "Check installment payment status by kode bayar.\nQuery: kode_bayar (required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/dashboard?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","dashboard"],
+              "query": [
+                { "key": "start_date", "value": "2024-01-01", "description": "Filter start date YYYY-MM-DD (optional)" },
+                { "key": "end_date", "value": "2024-12-31", "description": "Filter end date YYYY-MM-DD (optional)" }
+              ]
+            },
+            "description": "Get dashboard statistics: transaction counts by status, installment counts, revenue per OPD.\nQuery (all optional): start_date, end_date"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Dashboard by OPD",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/dashboard/opd/{opdId}?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","dashboard","opd","{opdId}"],
+              "query": [
+                { "key": "start_date", "value": "2024-01-01", "description": "Filter start date YYYY-MM-DD (optional)" },
+                { "key": "end_date", "value": "2024-12-31", "description": "Filter end date YYYY-MM-DD (optional)" }
+              ]
+            },
+            "description": "Get dashboard statistics for a specific OPD.\nPath param: opdId (integer)\nQuery (all optional): start_date, end_date"
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Get Transaction Summary List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/summary/list?opd_id=1&master_status_pembayaran_id=1&per_page=8",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","summary","list"],
+              "query": [
+                { "key": "opd_id", "value": "1", "description": "OPD ID (optional)" },
+                { "key": "master_status_pembayaran_id", "value": "1", "description": "Payment status ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8)" }
+              ]
+            },
+            "description": "Get transaction summary list by OPD and status (getTransaksiByOpdAndStatus).\nQuery (all optional): opd_id, master_status_pembayaran_id, per_page"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Installment Summary List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/summary/installment/list?opd_id=1&master_status_pembayaran_id=1&per_page=8",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","summary","installment","list"],
+              "query": [
+                { "key": "opd_id", "value": "1", "description": "OPD ID (optional)" },
+                { "key": "master_status_pembayaran_id", "value": "1", "description": "Payment status ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8)" }
+              ]
+            },
+            "description": "Get installment transaction summary list by OPD and status (getInstallmentTransaksiByOpdAndStatus).\nQuery (all optional): opd_id, master_status_pembayaran_id, per_page"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Transactions Per OPD",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/summary/opd/list?opd_id=1&master_status_pembayaran_id=1&per_page=8",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","summary","opd","list"],
+              "query": [
+                { "key": "opd_id", "value": "1", "description": "OPD ID (optional)" },
+                { "key": "master_status_pembayaran_id", "value": "1", "description": "Payment status ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8)" }
+              ]
+            },
+            "description": "Get all transactions per OPD (getTransaksiAllPerOPD).\nQuery (all optional): opd_id, master_status_pembayaran_id, per_page"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Full Report (PDF)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/generate/report?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","generate","report"],
+              "query": [
+                { "key": "start_date", "value": "2024-01-01", "description": "Report start date YYYY-MM-DD (optional)" },
+                { "key": "end_date", "value": "2024-12-31", "description": "Report end date YYYY-MM-DD (optional)" },
+                { "key": "opd_id", "value": "1", "description": "Filter by OPD ID (optional)" }
+              ]
+            },
+            "description": "Generate full transaction report as PDF.\nQuery (all optional): start_date, end_date, opd_id"
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Generate Full Report (Excel)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/generate/report/excel?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","generate","report","excel"],
+              "query": [
+                { "key": "start_date", "value": "2024-01-01", "description": "Report start date YYYY-MM-DD (optional)" },
+                { "key": "end_date", "value": "2024-12-31", "description": "Report end date YYYY-MM-DD (optional)" },
+                { "key": "opd_id", "value": "1", "description": "Filter by OPD ID (optional)" }
+              ]
+            },
+            "description": "Generate full transaction report as Excel (.xlsx).\nQuery (all optional): start_date, end_date, opd_id"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate SKRD Report (PDF)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/generate/skrd-report?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","generate","skrd-report"],
+              "query": [
+                { "key": "start_date", "value": "2024-01-01", "description": "Report start date YYYY-MM-DD (optional)" },
+                { "key": "end_date", "value": "2024-12-31", "description": "Report end date YYYY-MM-DD (optional)" },
+                { "key": "opd_id", "value": "1", "description": "Filter by OPD ID (optional)" }
+              ]
+            },
+            "description": "Generate SKRD report as PDF.\nQuery (all optional): start_date, end_date, opd_id"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate SKRD Report (Excel)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transaksi/generate/skrd-report/excel?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"], "path": ["transaksi","generate","skrd-report","excel"],
+              "query": [
+                { "key": "start_date", "value": "2024-01-01", "description": "Report start date YYYY-MM-DD (optional)" },
+                { "key": "end_date", "value": "2024-12-31", "description": "Report end date YYYY-MM-DD (optional)" },
+                { "key": "opd_id", "value": "1", "description": "Filter by OPD ID (optional)" }
+              ]
+            },
+            "description": "Generate SKRD report as Excel (.xlsx).\nQuery (all optional): start_date, end_date, opd_id"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Revenue Recap (PDF)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/generate/revenue-recap", "host": ["{{baseUrl}}"], "path": ["transaksi","generate","revenue-recap"] },
+            "description": "Generate revenue recap report as PDF.\n\nBody fields (all optional):\n- start_date (YYYY-MM-DD)\n- end_date (YYYY-MM-DD)\n- opd_id (integer)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"2024-01-01\",\n  \"end_date\": \"2024-12-31\",\n  \"opd_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Revenue Recap (Excel)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transaksi/generate/revenue-recap/excel", "host": ["{{baseUrl}}"], "path": ["transaksi","generate","revenue-recap","excel"] },
+            "description": "Generate revenue recap report as Excel (.xlsx).\n\nBody fields (all optional):\n- start_date (YYYY-MM-DD)\n- end_date (YYYY-MM-DD)\n- opd_id (integer)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"2024-01-01\",\n  \"end_date\": \"2024-12-31\",\n  \"opd_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "External Payment Callback",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/external/payment/callback", "host": ["{{baseUrl}}"], "path": ["external","payment","callback"] },
+            "description": "External payment gateway callback. Uses middleware: api, client.secret (no app.version required).\n\nThis endpoint is called by the payment gateway when a payment is processed.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference_no\": \"TRX-20240101-XXXX\",\n  \"status\": \"paid\",\n  \"amount\": 1000000,\n  \"payment_date\": \"2024-01-15\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Master Data",
+      "item": [
+        {
+          "name": "Get Master Retribusi",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/retribusi", "host": ["{{baseUrl}}"], "path": ["master","retribusi"] },
+            "description": "Get all master retribusi data. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Retribusi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/retribusi/create", "host": ["{{baseUrl}}"], "path": ["master","retribusi","create"] },
+            "description": "Create new master retribusi.\n\nRequired:\n- nama_retribusi (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_retribusi\": \"Retribusi Jasa Usaha\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Retribusi",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/retribusi/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","retribusi","update","{id}"] },
+            "description": "Update master retribusi by ID.\n\nPath param: id (integer)\n\nRequired:\n- nama_retribusi (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_retribusi\": \"Retribusi Jasa Usaha Updated\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Rincian Retribusi",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/master/rincian-retribusi?master_retribusi_id=1",
+              "host": ["{{baseUrl}}"], "path": ["master","rincian-retribusi"],
+              "query": [{ "key": "master_retribusi_id", "value": "1", "description": "Filter by master retribusi ID (optional)" }]
+            },
+            "description": "Get master rincian retribusi. Requires auth.\n\nQuery (optional):\n- master_retribusi_id (integer): filter by parent retribusi"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Rincian Retribusi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/rincian-retribusi/create", "host": ["{{baseUrl}}"], "path": ["master","rincian-retribusi","create"] },
+            "description": "Create new master rincian retribusi.\n\nRequired:\n- rincian_retribusi (string)\n- master_tipe_retribusi_id (integer, exists:master_retribusi)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rincian_retribusi\": \"Pemakaian Kekayaan Daerah\",\n  \"master_tipe_retribusi_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Rincian Retribusi",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/rincian-retribusi/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","rincian-retribusi","update","{id}"] },
+            "description": "Update master rincian retribusi by ID.\n\nPath param: id (integer)\n\nRequired:\n- rincian_retribusi (string)\n- master_tipe_retribusi_id (integer, exists:master_retribusi)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rincian_retribusi\": \"Pemakaian Kekayaan Daerah Updated\",\n  \"master_tipe_retribusi_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Get Master Sub Rincian Retribusi",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/sub-rincian-retribusi", "host": ["{{baseUrl}}"], "path": ["master","sub-rincian-retribusi"] },
+            "description": "Get all master sub rincian retribusi. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Sub Rincian Retribusi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/sub-rincian-retribusi/create", "host": ["{{baseUrl}}"], "path": ["master","sub-rincian-retribusi","create"] },
+            "description": "Create new master sub rincian retribusi.\n\nRequired:\n- sub_rincian_retribusi (string)\n- master_rincian_retribusi_id (integer, exists:master_rincian_retribusi)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sub_rincian_retribusi\": \"Sub Rincian Contoh\",\n  \"master_rincian_retribusi_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Sub Rincian Retribusi",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/sub-rincian-retribusi/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","sub-rincian-retribusi","update","{id}"] },
+            "description": "Update master sub rincian retribusi by ID.\n\nPath param: id (integer)\n\nRequired:\n- sub_rincian_retribusi (string)\n- master_rincian_retribusi_id (integer, exists:master_rincian_retribusi)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sub_rincian_retribusi\": \"Sub Rincian Updated\",\n  \"master_rincian_retribusi_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Chief",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/chief", "host": ["{{baseUrl}}"], "path": ["master","chief"] },
+            "description": "Get all master chief data. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Chief",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/chief/create", "host": ["{{baseUrl}}"], "path": ["master","chief","create"] },
+            "description": "Create new master chief.\n\nRequired:\n- name (string)\n- nip (string)\n- jabatan (string)\n- master_opd_id (integer, exists:master_opd)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nama Kepala\",\n  \"nip\": \"198001012005011001\",\n  \"jabatan\": \"Kepala Bidang\",\n  \"master_opd_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Chief",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/chief/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","chief","update","{id}"] },
+            "description": "Update master chief by ID.\n\nPath param: id (integer)\n\nRequired:\n- name (string)\n- nip (string)\n- jabatan (string)\n- master_opd_id (integer, exists:master_opd)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nama Kepala Updated\",\n  \"nip\": \"198001012005011001\",\n  \"jabatan\": \"Kepala Dinas\",\n  \"master_opd_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master OPD",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/opd", "host": ["{{baseUrl}}"], "path": ["master","opd"] },
+            "description": "Get all master OPD data. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master OPD",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/opd/create", "host": ["{{baseUrl}}"], "path": ["master","opd","create"] },
+            "description": "Create new master OPD.\n\nRequired:\n- nama_opd (string)\n- kode_opd (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_opd\": \"Dinas Contoh\",\n  \"kode_opd\": \"1.01.01\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master OPD",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/opd/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","opd","update","{id}"] },
+            "description": "Update master OPD by ID.\n\nPath param: id (integer)\n\nRequired:\n- nama_opd (string)\n- kode_opd (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_opd\": \"Dinas Contoh Updated\",\n  \"kode_opd\": \"1.01.02\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Get Master Lokasi Objek",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/lokasi-objek", "host": ["{{baseUrl}}"], "path": ["master","lokasi-objek"] },
+            "description": "Get all master lokasi objek. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Lokasi Objek",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/lokasi-objek/create", "host": ["{{baseUrl}}"], "path": ["master","lokasi-objek","create"] },
+            "description": "Create new master lokasi objek.\n\nRequired:\n- nama_lokasi (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_lokasi\": \"Lokasi Contoh\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Lokasi Objek",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/lokasi-objek/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","lokasi-objek","update","{id}"] },
+            "description": "Update master lokasi objek by ID.\n\nPath param: id (integer)\n\nRequired:\n- nama_lokasi (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_lokasi\": \"Lokasi Updated\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Type Object",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/type-object", "host": ["{{baseUrl}}"], "path": ["master","type-object"] },
+            "description": "Get all master type object. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Type Object",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/type-object/create", "host": ["{{baseUrl}}"], "path": ["master","type-object","create"] },
+            "description": "Create new master type object.\n\nRequired:\n- nama_type (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_type\": \"Tipe Objek Baru\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Type Object",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/type-object/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","type-object","update","{id}"] },
+            "description": "Update master type object by ID.\n\nPath param: id (integer)\n\nRequired:\n- nama_type (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_type\": \"Tipe Objek Updated\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Payment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/payment", "host": ["{{baseUrl}}"], "path": ["master","payment"] },
+            "description": "Get all master payment types. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/payment/create", "host": ["{{baseUrl}}"], "path": ["master","payment","create"] },
+            "description": "Create new master payment type.\n\nRequired:\n- tipe_pembayaran (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipe_pembayaran\": \"Transfer Bank\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Payment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/payment/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","payment","update","{id}"] },
+            "description": "Update master payment type by ID.\n\nPath param: id (integer)\n\nRequired:\n- tipe_pembayaran (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipe_pembayaran\": \"Transfer Bank Updated\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Get Master Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/payment-status", "host": ["{{baseUrl}}"], "path": ["master","payment-status"] },
+            "description": "Get all master payment status. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Payment Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/payment-status/create", "host": ["{{baseUrl}}"], "path": ["master","payment-status","create"] },
+            "description": "Create new master payment status.\n\nRequired:\n- status_pembayaran (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status_pembayaran\": \"Menunggu Pembayaran\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Payment Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/payment-status/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","payment-status","update","{id}"] },
+            "description": "Update master payment status by ID.\n\nPath param: id (integer)\n\nRequired:\n- status_pembayaran (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status_pembayaran\": \"Lunas\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Document",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/document", "host": ["{{baseUrl}}"], "path": ["master","document"] },
+            "description": "Get all master document types. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/document/create", "host": ["{{baseUrl}}"], "path": ["master","document","create"] },
+            "description": "Create new master document type.\n\nRequired:\n- nama_dokumen (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_dokumen\": \"KTP\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Document",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/document/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","document","update","{id}"] },
+            "description": "Update master document type by ID.\n\nPath param: id (integer)\n\nRequired:\n- nama_dokumen (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_dokumen\": \"Kartu Tanda Penduduk\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Satuan",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/satuan", "host": ["{{baseUrl}}"], "path": ["master","satuan"] },
+            "description": "Get all master satuan (unit of measurement). Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Satuan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/satuan/create", "host": ["{{baseUrl}}"], "path": ["master","satuan","create"] },
+            "description": "Create new master satuan.\n\nRequired:\n- nama_satuan (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_satuan\": \"Hari\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Satuan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/satuan/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","satuan","update","{id}"] },
+            "description": "Update master satuan by ID.\n\nPath param: id (integer)\n\nRequired:\n- nama_satuan (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_satuan\": \"Bulan\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+        ,
+        {
+          "name": "Get Master TPJ",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/tpj", "host": ["{{baseUrl}}"], "path": ["master","tpj"] },
+            "description": "Get all master TPJ (Tarif Per Jenis). Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master TPJ",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/tpj/create", "host": ["{{baseUrl}}"], "path": ["master","tpj","create"] },
+            "description": "Create new master TPJ.\n\nRequired:\n- nama_tpj (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_tpj\": \"Tarif Per Unit\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master TPJ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/tpj/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","tpj","update","{id}"] },
+            "description": "Update master TPJ by ID.\n\nPath param: id (integer)\n\nRequired:\n- nama_tpj (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_tpj\": \"Tarif Per Unit Updated\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/role", "host": ["{{baseUrl}}"], "path": ["master","role"] },
+            "description": "Get all master roles. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/role/create", "host": ["{{baseUrl}}"], "path": ["master","role","create"] },
+            "description": "Create new master role.\n\nRequired:\n- nama_role (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_role\": \"Admin OPD\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/master/role/update/{id}", "host": ["{{baseUrl}}"], "path": ["master","role","update","{id}"] },
+            "description": "Update master role by ID.\n\nPath param: id (integer)\n\nRequired:\n- nama_role (string)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_role\": \"Super Admin\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Objek (Master)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Client-Secret", "value": "{{clientSecret}}" },
+              { "key": "X-App-Version", "value": "{{appVersion}}" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/master/objek/search?q=keyword&opd_id=1&per_page=8",
+              "host": ["{{baseUrl}}"], "path": ["master","objek","search"],
+              "query": [
+                { "key": "q", "value": "keyword", "description": "Search keyword (required)" },
+                { "key": "opd_id", "value": "1", "description": "Filter by OPD ID (optional)" },
+                { "key": "per_page", "value": "8", "description": "Items per page (default: 8)" }
+              ]
+            },
+            "description": "Search objek from master data context. Requires auth.\n\nQuery:\n- q (string, required): search keyword\n- opd_id (integer, optional)\n- per_page (integer, optional, default: 8)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,670 @@
+{
+    "info": {
+        "_postman_id": "dashboard-web-api-collection",
+        "name": "E-Retribusi Dashboard Web API (v2.0)",
+        "description": "API untuk integrasi dashboard ke web eksternal. Menggunakan EXTERNAL_API_TOKEN untuk autentikasi (tidak perlu login). Version 2.0 dengan lightweight endpoints.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "dashboard-web-api"
+    },
+    "item": [
+        {
+            "name": "1. Dashboard Data (DEPRECATED)",
+            "item": [
+                {
+                    "name": "Get Dashboard Data (Full - DEPRECATED)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web?start_date=2026-01-01&end_date=2026-03-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web"],
+                            "query": [
+                                {
+                                    "key": "start_date",
+                                    "value": "2026-01-01",
+                                    "description": "Start date (optional)"
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2026-03-31",
+                                    "description": "End date (optional)"
+                                }
+                            ]
+                        },
+                        "description": "DEPRECATED: Use separate lightweight endpoints below for better performance. This endpoint is kept for backward compatibility only."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Old full dashboard endpoint (deprecated - use lightweight endpoints instead)"
+        },
+        {
+            "name": "2. Lightweight Dashboard Components (NEW ⚡)",
+            "item": [
+                {
+                    "name": "Get Summary Only",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/summary?start_date=2026-01-01&end_date=2026-03-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "summary"],
+                            "query": [
+                                {
+                                    "key": "start_date",
+                                    "value": "2026-01-01",
+                                    "description": "Start date (optional, default: awal bulan ini)"
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2026-03-31",
+                                    "description": "End date (optional, default: akhir bulan ini)"
+                                }
+                            ]
+                        },
+                        "description": "⚡ LIGHTWEIGHT: Get summary metrics only (total transaksi & pendapatan).\n\nPerformance:\n- Queries: 3\n- Response size: ~1KB\n- Response time: ~200-300ms\n\nUse case: Summary cards, quick metrics"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Retribusi Breakdown",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/retribusi-breakdown?start_date=2026-01-01&end_date=2026-03-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "retribusi-breakdown"],
+                            "query": [
+                                {
+                                    "key": "start_date",
+                                    "value": "2026-01-01",
+                                    "description": "Start date (optional)"
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2026-03-31",
+                                    "description": "End date (optional)"
+                                }
+                            ]
+                        },
+                        "description": "⚡ LIGHTWEIGHT: Get retribusi breakdown only (per jenis retribusi).\n\nPerformance:\n- Queries: 1\n- Response size: ~2KB\n- Response time: ~150-250ms\n\nUse case: Pie chart, retribusi breakdown table"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get OPD Performance",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/opd-performance?start_date=2026-01-01&end_date=2026-12-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "opd-performance"],
+                            "query": [
+                                {
+                                    "key": "start_date",
+                                    "value": "2026-01-01",
+                                    "description": "Start date (optional, default: awal tahun)"
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2026-12-31",
+                                    "description": "End date (optional, default: akhir tahun)"
+                                }
+                            ]
+                        },
+                        "description": "⚡ LIGHTWEIGHT: Get OPD performance vs target only.\n\nPerformance:\n- Queries: 2\n- Response size: ~10KB\n- Response time: ~300-500ms\n\nUse case: OPD performance table, progress bars, achievement ranking"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Realisasi vs Target",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/realisasi-vs-target?start_date=2026-01-01&end_date=2026-12-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "realisasi-vs-target"],
+                            "query": [
+                                {
+                                    "key": "start_date",
+                                    "value": "2026-01-01",
+                                    "description": "Start date (optional, default: awal tahun)"
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2026-12-31",
+                                    "description": "End date (optional, default: akhir tahun)"
+                                }
+                            ]
+                        },
+                        "description": "⚡ LIGHTWEIGHT: Get realisasi vs target (per OPD & per retribusi).\n\nPerformance:\n- Queries: 4\n- Response size: ~15KB\n- Response time: ~500-800ms\n\nUse case: Realisasi dashboard section, target achievement charts"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "⚡ NEW LIGHTWEIGHT ENDPOINTS for better performance!\n\nBenefits:\n- 60% faster response time\n- 94% smaller payload\n- Load only what you need\n- Better for mobile\n- Progressive loading support\n\nRecommended for all new integrations!"
+        },
+        {
+            "name": "3. Master Data Lists",
+            "item": [
+                {
+                    "name": "Get OPD List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/opd?search=DINAS&per_page=20&page=1",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "opd"],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "DINAS",
+                                    "description": "Search by nama OPD"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "20",
+                                    "description": "Items per page (default: 15)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number"
+                                }
+                            ]
+                        },
+                        "description": "Mendapatkan daftar OPD dengan fitur search dan pagination."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Retribusi List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/retribusi?search=Jasa&per_page=15&page=1",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "retribusi"],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "Jasa",
+                                    "description": "Search by nama retribusi"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15",
+                                    "description": "Items per page (default: 15)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number"
+                                }
+                            ]
+                        },
+                        "description": "Mendapatkan daftar jenis retribusi dengan fitur search dan pagination."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Lokasi List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/lokasi?search=Pasar&per_page=10&page=1",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "lokasi"],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "Pasar",
+                                    "description": "Search by nama lokasi"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "10",
+                                    "description": "Items per page (default: 15)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number"
+                                }
+                            ]
+                        },
+                        "description": "Mendapatkan daftar lokasi objek retribusi dengan fitur search dan pagination."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Objek List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/objek?search=Kios&opd_id=8&retribusi_id=2&lokasi_id=45&per_page=20&page=1",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "objek"],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "Kios",
+                                    "description": "Search by nama objek"
+                                },
+                                {
+                                    "key": "opd_id",
+                                    "value": "8",
+                                    "description": "Filter by OPD ID"
+                                },
+                                {
+                                    "key": "retribusi_id",
+                                    "value": "2",
+                                    "description": "Filter by Retribusi ID"
+                                },
+                                {
+                                    "key": "lokasi_id",
+                                    "value": "45",
+                                    "description": "Filter by Lokasi ID"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "20",
+                                    "description": "Items per page (default: 15)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number"
+                                }
+                            ]
+                        },
+                        "description": "Mendapatkan daftar objek retribusi dengan fitur search, filter, dan pagination."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoint untuk mendapatkan master data (OPD, Retribusi, Lokasi, Objek)"
+        },
+        {
+            "name": "4. Performance & Realisasi Detail",
+            "item": [
+                {
+                    "name": "Get Performance Detail",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/performance-detail?tahun=2026&start_date=2026-01-01&end_date=2026-03-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "performance-detail"],
+                            "query": [
+                                {
+                                    "key": "tahun",
+                                    "value": "2026",
+                                    "description": "Year filter (default: current year)"
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2026-01-01",
+                                    "description": "Start date (default: awal tahun)"
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2026-03-31",
+                                    "description": "End date (default: akhir tahun)"
+                                }
+                            ]
+                        },
+                        "description": "Mendapatkan detail lengkap performa OPD vs Target (semua OPD)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Realisasi Detail",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/realisasi-detail?tahun=2026&start_date=2026-01-01&end_date=2026-12-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "realisasi-detail"],
+                            "query": [
+                                {
+                                    "key": "tahun",
+                                    "value": "2026",
+                                    "description": "Year filter (default: current year)"
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2026-01-01",
+                                    "description": "Start date (default: awal tahun)"
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2026-12-31",
+                                    "description": "End date (default: akhir tahun)"
+                                }
+                            ]
+                        },
+                        "description": "Mendapatkan detail lengkap realisasi vs target (per OPD dan per jenis retribusi)."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoint untuk performance dan realisasi detail pages"
+        },
+        {
+            "name": "5. OPD Drill-down",
+            "item": [
+                {
+                    "name": "Get Realisasi Lokasi by OPD",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/opd/8/lokasi?tahun=2026",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard-web", "opd", "8", "lokasi"],
+                            "query": [
+                                {
+                                    "key": "tahun",
+                                    "value": "2026",
+                                    "description": "Year filter (default: current year)"
+                                }
+                            ]
+                        },
+                        "description": "Mendapatkan realisasi pendapatan per lokasi untuk OPD tertentu."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Realisasi Retribusi by Lokasi",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/opd/8/lokasi/45/retribusi?tahun=2026",
+                            "host": ["{{base_url}}"],
+                            "path": [
+                                "dashboard-web",
+                                "opd",
+                                "8",
+                                "lokasi",
+                                "45",
+                                "retribusi"
+                            ],
+                            "query": [
+                                {
+                                    "key": "tahun",
+                                    "value": "2026",
+                                    "description": "Year filter (default: current year)"
+                                }
+                            ]
+                        },
+                        "description": "Mendapatkan breakdown realisasi per jenis retribusi untuk lokasi tertentu."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoint untuk drill-down data per OPD dan lokasi"
+        },
+        {
+            "name": "6. Helper Endpoints",
+            "item": [
+                {
+                    "name": "Get Lokasi by OPD",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/helper/lokasi-by-opd?opd_id=8",
+                            "host": ["{{base_url}}"],
+                            "path": [
+                                "dashboard-web",
+                                "helper",
+                                "lokasi-by-opd"
+                            ],
+                            "query": [
+                                {
+                                    "key": "opd_id",
+                                    "value": "8",
+                                    "description": "OPD ID (required)"
+                                }
+                            ]
+                        },
+                        "description": "Helper endpoint untuk mendapatkan daftar lokasi berdasarkan OPD (untuk dropdown)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Rincian by Retribusi",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-API-TOKEN",
+                                "value": "{{api_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard-web/helper/rincian-by-retribusi?retribusi_id=2",
+                            "host": ["{{base_url}}"],
+                            "path": [
+                                "dashboard-web",
+                                "helper",
+                                "rincian-by-retribusi"
+                            ],
+                            "query": [
+                                {
+                                    "key": "retribusi_id",
+                                    "value": "2",
+                                    "description": "Retribusi ID (required)"
+                                }
+                            ]
+                        },
+                        "description": "Helper endpoint untuk mendapatkan daftar rincian retribusi berdasarkan jenis retribusi (untuk dropdown)."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Helper endpoints untuk dropdown dan utility functions"
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [""]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [""]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "https://saibara.lampungprov.go.id/api",
+            "type": "string"
+        },
+        {
+            "key": "api_token",
+            "value": "GVRf:nCpI1Y2cQu;D7=JyiPU34KrL>s5<@Wjok0xSNazXl?MgBwvEZbOqd9FtTmA",
+            "type": "string"
+        }
+    ]
+}
